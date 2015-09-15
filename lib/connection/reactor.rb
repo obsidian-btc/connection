@@ -2,14 +2,14 @@ module Connection
   class Reactor
     DEFAULT_SELECT_INTERVAL = 0.5
 
-    attr_accessor :client_count
+    attr_reader :clients
     attr_reader :dispatcher
     attr_reader :select_interval
 
     dependency :logger, Telemetry::Logger
 
     def initialize(dispatcher, select_interval)
-      @client_count = 0
+      @clients = {}
       @dispatcher = dispatcher
       @select_interval = select_interval
     end
@@ -21,8 +21,11 @@ module Connection
       instance
     end
 
+    def client_count
+      @clients.size
+    end
+
     def register(client)
-      logger.debug "Registering client #{client}"
       fiber = Fiber.new do
         client.run do |connection|
           policy = Policy::Cooperative.new self
@@ -30,34 +33,13 @@ module Connection
         end
         unregister client
       end
-      increment_client_count
-      fiber.resume
-    end
-
-    def unregister(client)
-      logger.debug "Unregistering client #{client}"
-      decrement_client_count
-    end
-
-    def wait_readable(socket, &handler)
-      logger.debug "Registering handler for reading on fd=#{socket.fileno}"
-      dispatcher.register_read socket, &handler
-    end
-
-    def wait_writable(socket, &handler)
-      logger.debug "Registering handler for writing on fd=#{socket.fileno}"
-      dispatcher.register_write socket, &handler
-    end
-
-    def decrement_client_count
-      self.client_count -= 1
-    end
-
-    def increment_client_count
-      self.client_count += 1
+      clients[client] = fiber
+      logger.debug "Registered client #{client}"
     end
 
     def run
+      clients.values.each &:resume
+
       while client_count > 0
         reads, writes = dispatcher.pending_sockets
 
@@ -82,6 +64,21 @@ module Connection
           dispatcher.dispatch_write ready_socket
         end
       end
+    end
+
+    def unregister(client)
+      clients.delete client
+      logger.debug "Unregistered client #{client}"
+    end
+
+    def wait_readable(socket, &handler)
+      logger.debug "Registering handler for reading on fd=#{socket.fileno}"
+      dispatcher.register_read socket, &handler
+    end
+
+    def wait_writable(socket, &handler)
+      logger.debug "Registering handler for writing on fd=#{socket.fileno}"
+      dispatcher.register_write socket, &handler
     end
   end
 end
