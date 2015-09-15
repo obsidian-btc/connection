@@ -1,14 +1,22 @@
 module Connection
   class Client
-    include Connection
-    include Connection::IOMethods
+    include Proxy
+    include Proxy::IOMethods
 
     attr_reader :host
     attr_reader :port
 
+    dependency :logger
+
     def initialize(host, port)
       @host = host
       @port = port
+    end
+
+    def self.build(host, port)
+      instance = new host, port
+      Telemetry::Logger.configure instance
+      instance
     end
 
     def socket

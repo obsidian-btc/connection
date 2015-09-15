@@ -1,0 +1,46 @@
+PATH
+  remote: /Users/ntl/Projects/obsidian/libraries/attribute
+  specs:
+    attribute (0.0.0)
+
+PATH
+  remote: /Users/ntl/Projects/obsidian/libraries/clock
+  specs:
+    clock (0.0.0)
+
+PATH
+  remote: /Users/ntl/Projects/obsidian/libraries/dependency
+  specs:
+    dependency (0.0.0)
+      naught (= 1.0.0)
+
+PATH
+  remote: /Users/ntl/Projects/obsidian/libraries/subst-attr
+  specs:
+    subst_attr (0.0.0)
+      naught (= 1.0.0)
+
+PATH
+  remote: /Users/ntl/Projects/obsidian/libraries/telemetry-logger
+  specs:
+    telemetry_logger (0.0.0)
+      rainbow
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    naught (1.0.0)
+    rainbow (2.0.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  attribute!
+  clock!
+  dependency!
+  subst_attr!
+  telemetry_logger!
+
+BUNDLED WITH
+   1.10.6

@@ -3,8 +3,8 @@ require "socket"
 
 require "telemetry/logger"
 
-require_relative "connection/connection"
-require_relative "connection/connection/io_methods"
+require_relative "connection/proxy"
+require_relative "connection/proxy/io_methods"
 
 require_relative "connection/client"
 require_relative "connection/reactor/dispatcher"
