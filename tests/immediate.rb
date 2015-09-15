@@ -5,14 +5,14 @@ require "connection/controls"
 Thread.abort_on_exception = true
 
 server_thread = Thread.new do
-  server = Connection::Controls::ExampleServer.immediate
+  server = Connection::Controls::ExampleServer.build
   server.run
 end
 
 client_thread = Thread.new do
   Thread.pass # Let server finish setting up
 
-  client = Connection::Controls::ExampleClient.immediate
+  client = Connection::Controls::ExampleClient.build
   assert client.counter > 0
   client.run
 

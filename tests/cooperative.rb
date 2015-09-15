@@ -3,8 +3,10 @@ require "connection"
 require "connection/controls"
 
 reactor = Connection::Reactor.build
-server = Connection::Controls::ExampleServer.cooperative reactor
-client = Connection::Controls::ExampleClient.cooperative reactor
+server = Connection::Controls::ExampleServer.build
+client = Connection::Controls::ExampleClient.build
+reactor.register server
+reactor.register client
 
 logger.trace "Starting reactor"
 assert client.counter > 0

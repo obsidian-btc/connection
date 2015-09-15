@@ -9,26 +9,11 @@ module Connection
         @server_connection = server_connection
       end
 
-      def self.build(connection)
+      def self.build
+        connection = Connection::Server.build "127.0.0.1", 90210
         instance = new connection
         Telemetry::Logger.configure instance
         instance
-      end
-
-      def self.immediate
-        build connection
-      end
-
-      def self.cooperative(reactor)
-        connection = self.connection
-        connection.policy = Connection::Policy::Cooperative.build reactor
-        instance = build connection
-        reactor.register instance
-        instance
-      end
-
-      def self.connection
-        Connection::Server.build "127.0.0.1", 90210
       end
 
       def run(&blk)
@@ -68,27 +53,12 @@ module Connection
         @counter = counter
       end
 
-      def self.build(connection, counter: nil)
+      def self.build(counter: nil)
         counter ||= ENV.fetch("EXAMPLE_CLIENT_COUNTER", "3").to_i
+        connection = Connection::Client.build "127.0.0.1", 90210
         instance = new connection, counter
         Telemetry::Logger.configure instance
         instance
-      end
-
-      def self.immediate(counter: nil)
-        build connection, counter: counter
-      end
-
-      def self.cooperative(reactor, counter: nil)
-        connection = self.connection
-        connection.policy = Connection::Policy::Cooperative.build reactor
-        instance = build connection, counter: counter
-        reactor.register instance
-        instance
-      end
-
-      def self.connection
-        Connection::Client.build "127.0.0.1", 90210
       end
 
       def run(&blk)
