@@ -3,20 +3,17 @@ module Connection
     class Cooperative
       class Timer
         attr_reader :duration_ms
-        attr_reader :fiber
-        attr_reader :reactor
+        attr_reader :context
 
         dependency :logger, Telemetry::Logger
 
-        def initialize(reactor, duration_ms, fiber)
+        def initialize(context, duration_ms)
           @duration_ms = duration_ms
-          @fiber = fiber
-          @reactor = reactor
+          @context = context
         end
 
-        def self.build(reactor, duration_ms)
-          fiber = Fiber.current
-          instance = new reactor, duration_ms, fiber
+        def self.build(context, duration_ms)
+          instance = new context, duration_ms
           Telemetry::Logger.configure instance
           instance
         end
@@ -27,14 +24,11 @@ module Connection
         end
 
         def call
-          reactor.wait_timer duration_ms do
+          context.wait_timer duration_ms do
             logger.debug "Wait timer for #{duration_ms}ms returned"
             logger.trace "Returning control back to client for retry"
-            fiber.resume
+            context.resume nil
           end
-          logger.debug "Connection could not be established"
-          logger.trace "Returning control back to reactor for at least #{duration_ms}ms" 
-          Fiber.yield
         end
       end
     end

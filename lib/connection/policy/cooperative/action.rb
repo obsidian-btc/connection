@@ -4,21 +4,21 @@ module Connection
       class Action
         attr_reader :arguments
         attr_reader :fiber
-        attr_reader :reactor
+        attr_reader :context
         attr_reader :socket
 
         dependency :logger
 
-        def initialize(reactor, socket, arguments, fiber)
-          @reactor = reactor
+        def initialize(context, socket, arguments, fiber)
+          @context = context
           @socket = socket
           @arguments = arguments
           @fiber = fiber
         end
 
-        def self.build(reactor, socket, arguments)
+        def self.build(context, socket, arguments)
           fiber = Fiber.current
-          instance = new reactor, socket, arguments, fiber
+          instance = new context, socket, arguments, fiber
           Telemetry::Logger.configure instance
           instance
         end
@@ -40,21 +40,17 @@ module Connection
           handler = method :handler
 
           if read?
-            reactor.wait_readable socket, &handler
+            context.wait_readable socket, &handler
           elsif write?
-            reactor.wait_writable socket, &handler
+            context.wait_writable socket, &handler
           else
             fail "Action #{self.class} is neither a read nor a write"
           end
-
-          logger.debug "Client is transferring control back to reactor"
-          Fiber.yield
         end
 
         def handler(_)
           return_value = handle *arguments
-          logger.debug "Reactor is ready to return control back to client"
-          fiber.resume return_value
+          context.resume return_value
         end
       end
     end
