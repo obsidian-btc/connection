@@ -11,6 +11,13 @@ module Connection
       end
     end
 
+    module Close
+      def close
+        socket.close
+        self.socket = nil
+      end
+    end
+
     module Gets
       def gets(separator_or_limit = nil, limit = nil)
         logger.trace "gets(#{separator_or_limit.inspect}, #{limit.inspect})"

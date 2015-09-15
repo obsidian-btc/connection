@@ -8,7 +8,6 @@ module Connection
 
     def included(cls)
       cls.send :include, SocketWriter
-      cls.send :include, CloseMethod
       cls.send :include, PolicyAttribute
 
       io_method_modules.each do |mod|
@@ -20,13 +19,6 @@ module Connection
       io_method_names.map do |method_name|
         const_name = method_name.to_s.capitalize
         IOMethods.const_get const_name
-      end
-    end
-
-    module CloseMethod
-      def close
-        socket.close
-        self.socket = nil
       end
     end
 

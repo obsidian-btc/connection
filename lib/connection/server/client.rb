@@ -1,7 +1,7 @@
 module Connection
   class Server
     class Client
-      include Proxy.new(:gets, :puts, :read, :write)
+      include Proxy.new(:close, :gets, :puts, :read, :write)
 
       attr_reader :socket
 

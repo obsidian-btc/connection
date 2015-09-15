@@ -1,6 +1,6 @@
 module Connection
   class Server
-    include Proxy.new(:accept)
+    include Proxy.new(:close, :accept)
 
     attr_reader :host
     attr_reader :port

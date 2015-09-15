@@ -1,6 +1,6 @@
 module Connection
   class Client
-    include Proxy.new(:gets, :puts, :read, :write)
+    include Proxy.new(:close, :gets, :puts, :read, :write)
 
     attr_reader :host
     attr_reader :port
