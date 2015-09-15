@@ -13,6 +13,7 @@ module ErrorGenerator
 end
 
 errors = {}
+reraised = false
 
 reactor = Connection::Reactor.build
 reactor.register ErrorGenerator
@@ -23,6 +24,8 @@ begin
     end
   end
 rescue ErrorGenerator::Error
+  reraised = true
 end
 
 assert errors, :equals => { "ErrorGenerator" => "raises-error" }
+assert reraised

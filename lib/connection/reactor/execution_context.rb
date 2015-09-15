@@ -29,6 +29,7 @@ module Connection
             blk.(process) if block_given?
           rescue => error
             blk.(process, error) if block_given?
+            raise error
           end
         end
         resume nil
