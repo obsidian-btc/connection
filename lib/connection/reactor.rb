@@ -28,7 +28,7 @@ module Connection
     def register(client)
       fiber = Fiber.new do
         client.run do |connection|
-          policy = Policy::Cooperative.new self
+          policy = Policy::Cooperative.build self
           connection.policy = policy
         end
         unregister client
@@ -63,6 +63,8 @@ module Connection
         ready_writes.each do |ready_socket|
           dispatcher.dispatch_write ready_socket
         end
+
+        dispatcher.check_timers
       end
     end
 
@@ -79,6 +81,11 @@ module Connection
     def wait_writable(socket, &handler)
       logger.debug "Registering handler for writing on fd=#{socket.fileno}"
       dispatcher.register_write socket, &handler
+    end
+
+    def wait_timer(milliseconds, &handler)
+      logger.debug "Registering handler to run after #{milliseconds}ms"
+      dispatcher.register_timer milliseconds, &handler
     end
   end
 end

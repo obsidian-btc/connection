@@ -19,7 +19,11 @@ module Connection
     end
 
     def socket
-      @socket ||= TCPSocket.new host, port
+      @socket ||= policy.connect host, port
+    end
+
+    def connected?
+      if @socket then true else false end
     end
   end
 end

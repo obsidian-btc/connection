@@ -3,6 +3,20 @@ module Connection
     module Immediate
       extend self
 
+      attr_writer :retry_interval
+
+      def retry_interval
+        @retry_interval or Connection::RETRY_INTERVAL
+      end
+
+      def connect(host, port)
+        TCPSocket.new host, port
+      rescue Errno::ECONNREFUSED
+        seconds = Rational(retry_interval, 1000)
+        sleep seconds
+        retry
+      end
+
       def accept(server_socket)
         client_socket = server_socket.accept
         client_socket
