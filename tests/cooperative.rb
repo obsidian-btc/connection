@@ -1,6 +1,4 @@
-require "ftest/script"
-require "connection"
-require "connection/controls"
+require_relative "./tests_init"
 
 reactor = Connection::Reactor.build
 server = Connection::Controls::ExampleServer.build

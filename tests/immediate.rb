@@ -1,6 +1,4 @@
-require "ftest/script"
-require "connection"
-require "connection/controls"
+require_relative "./tests_init"
 
 Thread.abort_on_exception = true
 
