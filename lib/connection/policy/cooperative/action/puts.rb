@@ -8,7 +8,8 @@ module Connection
           end
 
           def handle(*lines)
-            socket.puts *lines
+            # TODO: implement a non blocking version
+            Immediate.puts socket, *lines
           end
         end
       end

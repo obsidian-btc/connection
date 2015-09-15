@@ -8,13 +8,8 @@ module Connection
           end
 
           def handle(separator_or_limit = nil, limit = nil)
-            if limit
-              socket.gets separator_or_limit, limit
-            elsif separator_or_limit
-              socket.gets separator_or_limit
-            else
-              socket.gets
-            end
+            # TODO: implement a non blocking version
+            Immediate.gets socket, separator_or_limit, limit
           end
         end
       end
