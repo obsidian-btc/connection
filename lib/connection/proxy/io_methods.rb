@@ -1,13 +1,11 @@
 module Connection
   module Proxy::IOMethods
     module Accept
-      def accept
+      def accept(&blk)
+        blk ||= ->*{}
         logger.trace "accept"
-        client_socket = policy.accept socket
-        new_instance = Server::Client.build client_socket
-        new_instance.policy = policy
-        logger.debug "accept returned socket #{client_socket.fileno}"
-        new_instance
+        policy.accept socket, blk
+        logger.debug "accept returned"
       end
     end
 

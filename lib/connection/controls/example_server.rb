@@ -19,26 +19,34 @@ module Connection
       def run(&blk)
         blk.(server_connection) if block_given?
 
+        running = true
+
         (0..Float::INFINITY).each do |number|
+          return unless running
+
           logger.debug "Iteration ##{number}"
 
-          client_connection = server_connection.accept
-
-          first_line = client_connection.gets
-          number_of_bytes = first_line.to_i
-
-          input_data = client_connection.read number_of_bytes
-          counter = input_data.to_i
-          output_data = (counter - 1).to_s
-          logger.info "Writing back #{output_data.inspect}"
-
-          response = "#{output_data.size}\n#{output_data}"
-          client_connection.write response
-
-          client_connection.close
-
-          return if counter <= 1
+          server_connection.accept do |client_connection|
+            counter = handle_client client_connection
+            running = false if counter <= 1
+          end
         end
+      end
+
+      def handle_client(client_connection)
+        first_line = client_connection.gets
+        number_of_bytes = first_line.to_i
+
+        input_data = client_connection.read number_of_bytes
+        counter = input_data.to_i
+        output_data = (counter - 1).to_s
+        logger.info "Writing back #{output_data.inspect}"
+
+        response = "#{output_data.size}\n#{output_data}"
+        client_connection.write response
+
+        client_connection.close
+        counter
       end
     end
   end

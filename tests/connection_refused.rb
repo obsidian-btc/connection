@@ -33,13 +33,14 @@ class Server
 
     server_connection = Connection::Server.build "127.0.0.1", port
     blk.(server_connection) if block_given?
-    logger.trace "Accepting connection"
-    client = server_connection.accept
 
-    logger.trace "Receiving request"
-    request = client.gets
-    logger.trace "Sending response"
-    client.puts "PONG"
+    logger.trace "Accepting connection"
+    server_connection.accept do |client|
+      logger.trace "Receiving request"
+      request = client.gets
+      logger.trace "Sending response"
+      client.puts "PONG"
+    end
   end
 end
 

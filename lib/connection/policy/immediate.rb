@@ -17,9 +17,10 @@ module Connection
         retry
       end
 
-      def accept(server_socket)
+      def accept(server_socket, blk)
         client_socket = server_socket.accept
-        client_socket
+        connection = Server::Client.build client_socket
+        blk.(connection)
       end
 
       def gets(socket, separator_or_limit, limit)
