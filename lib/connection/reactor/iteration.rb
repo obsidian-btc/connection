@@ -28,7 +28,7 @@ module Connection
         reads, writes = dispatcher.pending_sockets
 
         if reads.empty? and writes.empty?
-          logger.debug "Nothing to read or write, sleeping for a tick"
+          logger.debug "Nothing to read or write. Sleeping."
           sleep select_interval and return
         end
 
@@ -56,18 +56,18 @@ module Connection
       end
 
       def select(reads, writes)
-        logger.trace "Selecting: #{inspect_sockets reads, writes }"
+        logger.trace "Selecting (#{inspect_sockets reads, writes})"
         reads, writes = IO.select reads, writes, [], select_interval
         reads ||= []
         writes ||= []
-        logger.debug "Selected: reads=#{inspect_sockets reads, writes}"
+        logger.debug "Selected (#{inspect_sockets reads, writes})"
         return reads, writes
       end
 
       def inspect_sockets(reads, writes)
         read_fds = reads.map &:fileno
         write_fds = writes.map &:fileno
-        "reads=#{read_fds * ", "}, writes=#{write_fds * ", "}"
+        "Read Filenos: #{read_fds.inspect}, Write Filenos: #{write_fds.inspect}"
       end
     end
   end

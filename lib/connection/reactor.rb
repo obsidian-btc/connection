@@ -26,7 +26,29 @@ module Connection
 
       context = ExecutionContext.build process, dispatcher
       contexts << context
-      logger.debug "Registered process #{process}"
+      logger.debug "Process registered (Process: #{context.process_name})"
+    end
+
+    def run(&blk)
+      start_contexts &blk
+
+      while process_count > 0
+        Iteration.(dispatcher)
+      end
+    end
+
+    def start_contexts(&blk)
+      contexts.each do |context|
+        context.start do |process, error|
+          unregister context
+          blk.(process, error) if block_given?
+        end
+      end
+    end
+
+    def unregister(context)
+      logger.debug "Process unregistered (Process: #{context.process_name})"
+      contexts.delete context
     end
 
     module NullIntegration
@@ -57,28 +79,6 @@ module Connection
 Object #{process.inspect} does not implement #start and #change_connection_policy"
         MESSAGE
       end
-    end
-
-    def run(&blk)
-      start_contexts &blk
-
-      while process_count > 0
-        Iteration.(dispatcher)
-      end
-    end
-
-    def start_contexts(&blk)
-      contexts.each do |context|
-        context.start do |process, error|
-          unregister context
-          blk.(process, error) if block_given?
-        end
-      end
-    end
-
-    def unregister(context)
-      contexts.delete context
-      logger.debug "Unregistered process #{context.process}"
     end
   end
 end
