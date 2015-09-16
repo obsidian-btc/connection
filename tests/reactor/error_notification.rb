@@ -7,8 +7,11 @@ module ErrorGenerator
     end
   end
 
-  def self.run
+  def self.start
     raise Error
+  end
+
+  def self.change_connection_policy(policy)
   end
 end
 

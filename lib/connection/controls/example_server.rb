@@ -16,9 +16,7 @@ module Connection
         instance
       end
 
-      def run(&blk)
-        blk.(server_connection) if block_given?
-
+      def start
         running = true
 
         (0..Float::INFINITY).each do |number|
@@ -31,6 +29,10 @@ module Connection
             running = false if counter <= 1
           end
         end
+      end
+
+      def change_connection_policy(policy)
+        server_connection.policy = policy
       end
 
       def handle_client(client_connection)

@@ -22,10 +22,16 @@ module Connection
               @socket = socket
             end
 
-            def run(&blk)
-              connection = Server::Client.build socket
-              blk.(connection) if block_given?
+            def start
               handler.(connection)
+            end
+
+            def change_connection_policy(policy)
+              connection.policy = policy
+            end
+
+            def connection
+              @connection ||= Server::Client.build socket
             end
           end
         end

@@ -4,7 +4,7 @@ Thread.abort_on_exception = true
 
 server_thread = Thread.new do
   server = Connection::Controls::ExampleServer.build
-  server.run
+  server.start
 end
 
 client_thread = Thread.new do
@@ -12,7 +12,7 @@ client_thread = Thread.new do
 
   client = Connection::Controls::ExampleClient.build
   assert client.counter > 0
-  client.run
+  client.start
 
   assert client.counter, :equals => 0
 end

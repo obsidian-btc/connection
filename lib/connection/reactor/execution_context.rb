@@ -29,10 +29,9 @@ module Connection
         @fiber = Fiber.new do
           logger.trace "Running process"
           begin
-            process.run do |connection|
-              policy = Policy::Cooperative.build self
-              connection.policy = policy
-            end
+            policy = Policy::Cooperative.build self
+            process.change_connection_policy policy
+            process.start
             blk.(process) if blk
           rescue => error
             blk.(process, error) if blk

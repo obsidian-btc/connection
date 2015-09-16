@@ -19,9 +19,7 @@ module Connection
         instance
       end
 
-      def run(&blk)
-        blk.(connection) if block_given?
-
+      def start
         (1..Float::INFINITY).each do |number|
           logger.debug "Iteration ##{number}"
 
@@ -40,6 +38,10 @@ module Connection
 
           return if counter.zero?
         end
+      end
+
+      def change_connection_policy(policy)
+        connection.policy = policy
       end
     end
   end
