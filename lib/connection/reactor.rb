@@ -22,9 +22,41 @@ module Connection
     end
 
     def register(process)
+      Connection::Reactor::InvalidProcess.verify process
+
       context = ExecutionContext.build process, dispatcher
       contexts << context
       logger.debug "Registered process #{process}"
+    end
+
+    module NullIntegration
+      def start(*)
+        raise InvalidProcess.new self
+      end
+
+      def change_connection_policy(*)
+        raise InvalidProcess.new self
+      end
+    end
+
+    class InvalidProcess < StandardError
+      def self.verify(process)
+        unless process.respond_to? :start and process.respond_to? :change_connection_policy
+          raise new process
+        end
+      end
+
+      attr_reader :process
+
+      def initialize(process)
+        @process = process
+      end
+
+      def to_s
+        <<-MESSAGE.chomp
+Object #{process.inspect} does not implement #start and #change_connection_policy"
+        MESSAGE
+      end
     end
 
     def run(&blk)
