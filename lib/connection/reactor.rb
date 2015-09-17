@@ -21,10 +21,10 @@ module Connection
       contexts.size
     end
 
-    def register(process)
+    def register(process, process_name = nil)
       Connection::Reactor::InvalidProcess.verify process
 
-      context = ExecutionContext.build process, dispatcher
+      context = ExecutionContext.build process, dispatcher, process_name
       contexts << context
       logger.debug "Process registered (Process: #{context.process_name})"
     end

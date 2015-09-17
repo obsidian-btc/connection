@@ -3,8 +3,8 @@ require_relative "./tests_init"
 reactor = Connection::Reactor.build
 server = Connection::Controls::ExampleServer.build
 client = Connection::Controls::ExampleClient.build
-reactor.register server
-reactor.register client
+reactor.register server, "some-server"
+reactor.register client, "some-client"
 
 logger.trace "Starting reactor"
 assert client.counter > 0

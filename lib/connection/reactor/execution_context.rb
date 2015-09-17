@@ -5,28 +5,36 @@ module Connection
 
       attr_accessor :blk
       attr_reader :dispatcher
+      attr_reader :process_name
       attr_reader :process
       attr_reader :fiber
 
-      def initialize(process, dispatcher)
-        @process = process
+      def initialize(process, dispatcher, process_name)
+        @child_index = 0
         @dispatcher = dispatcher
+        @process_name = process_name
+        @process = process
       end
 
-      def self.build(process, dispatcher)
-        instance = new process, dispatcher
+      def self.build(process, dispatcher, process_name = nil)
+        process_name ||= default_name process
+        instance = new process, dispatcher, process_name
         Telemetry::Logger.configure instance
         instance
       end
 
-      def process_name
+      def self.default_name(process)
         process.class.name
       end
 
+      def next_child_index
+        @child_index += 1
+      end
+
       def resume(return_value)
-        logger.trace "Resuming: (Fiber: #{fiber}, Process: #{process_name})"
+        logger.trace "Resuming: (Process: #{process_name}, Fiber: #{fiber})"
         return_value = fiber.resume return_value
-        logger.debug "Resumed: (Fiber: #{fiber}, Process: #{process_name})"
+        logger.debug "Resumed: (Process: #{process_name}, Fiber: #{fiber})"
         return_value
       end
 
@@ -41,12 +49,12 @@ module Connection
           begin
             policy = Policy::Cooperative.build self
             process.change_connection_policy policy
-            logger.trace "Starting process (Process: #{process_name})"
+            logger.trace "Starting process (Process: #{process_name}, Fiber: #{Fiber.current})"
             process.start
-            logger.debug "Process finished (Process: #{process_name})"
+            logger.debug "Process finished (Process: #{process_name}), Fiber: #{Fiber.current}"
             blk.(process) if blk
           rescue => error
-            logger.debug "Process errored (Process: #{process_name}, Error: #{error.class.name})"
+            logger.debug "Process errored (Process: #{process_name}, Fiber: #{Fiber.current}, Error: #{error.class.name})"
             blk.(process, error) if blk
             raise error
           end
@@ -54,7 +62,8 @@ module Connection
       end
 
       def spawn(child_process)
-        child_context = self.class.build child_process, dispatcher
+        name = "#{process_name}-child-#{next_child_index}"
+        child_context = self.class.build child_process, dispatcher, name
         logger.trace "Starting subprocess (Execution Context: #{child_context.process_name})"
         child_context.start &blk
         logger.debug "Started subprocess (Execution Context: #{child_context.process_name})"
