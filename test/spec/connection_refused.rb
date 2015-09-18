@@ -1,11 +1,15 @@
-require_relative "./tests_init"
+require_relative "./spec_init"
 
 class Client
   attr_reader :connection
 
+  dependency :logger
+
   def self.build(port)
     connection = Connection::Client.build "127.0.0.1", port
-    new connection
+    instance = new connection
+    Telemetry::Logger.configure instance
+    instance
   end
 
   def initialize(connection)
@@ -28,10 +32,14 @@ class Server
   attr_reader :delay_before_start
   attr_reader :server_connection
 
+  dependency :logger
+
   def self.build(port, delay_before_start = nil)
     delay_before_start ||= 0.2
     server_connection = Connection::Server.build "127.0.0.1", port
-    new server_connection, delay_before_start
+    instance = new server_connection, delay_before_start
+    Telemetry::Logger.configure instance
+    instance
   end
 
   def initialize(server_connection, delay_before_start)
@@ -70,7 +78,7 @@ describe "Immediate connections" do
   server.run
   client_thread.join
 
-  assert response, :equals => "PONG\n"
+  assert response == "PONG\n"
 end
 
 describe "Cooperative connections" do

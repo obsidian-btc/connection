@@ -7,7 +7,13 @@ describe "Detecting processes that don't meet contract" do
 
   reactor = Connection::Reactor.build
 
-  assert :raises => Connection::Reactor::InvalidProcess do
-    reactor.register DoesNotMeetContract
+  specify "Raises error" do
+    errors = 0
+    begin
+      reactor.register DoesNotMeetContract
+    rescue Connection::Reactor::InvalidProcess
+      errors += 1
+    end
+    assert errors == 1
   end
 end

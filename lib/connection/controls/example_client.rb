@@ -11,9 +11,9 @@ module Connection
         @counter = counter
       end
 
-      def self.build(counter: nil)
+      def self.build(port, counter: nil)
         counter ||= ENV.fetch("EXAMPLE_CLIENT_COUNTER", "3").to_i
-        connection = Connection::Client.build "127.0.0.1", 90210
+        connection = Connection::Client.build "127.0.0.1", port
         instance = new connection, counter
         Telemetry::Logger.configure instance
         instance

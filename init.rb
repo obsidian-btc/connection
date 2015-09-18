@@ -1,5 +1,9 @@
-lib_path = File.expand_path "../lib", __FILE__
+require "bundler"
+Bundler.setup
 
+lib_path = File.expand_path "../lib", __FILE__
 unless $LOAD_PATH.include? lib_path
   $LOAD_PATH << lib_path
 end
+
+require "connection"

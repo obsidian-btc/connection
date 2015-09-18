@@ -9,8 +9,8 @@ module Connection
         @server_connection = server_connection
       end
 
-      def self.build
-        connection = Connection::Server.build "127.0.0.1", 90210
+      def self.build(port)
+        connection = Connection::Server.build "127.0.0.1", port
         instance = new connection
         Telemetry::Logger.configure instance
         instance
