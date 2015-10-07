@@ -20,7 +20,7 @@ module Connection
 
         def self.call(*arguments)
           instance = build *arguments
-          instance.call
+          instance.()
         end
 
         def call
