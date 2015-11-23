@@ -6,7 +6,7 @@ describe 'Client Connection' do
       io = StringIO.new "some-line\nother-line\n"
       client = Connection::Client.new io
 
-      data = io.readline
+      data = client.readline
 
       assert data == "some-line\n"
     end

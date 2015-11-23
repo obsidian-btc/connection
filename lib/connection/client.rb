@@ -33,7 +33,7 @@ module Connection
     end
 
     def readline_command
-      @readline_command ||= readline.build io, scheduler
+      @readline_command ||= Readline.build io, scheduler
     end
 
     def read(bytes=nil, outbuf=nil)
