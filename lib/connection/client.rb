@@ -1,18 +1,68 @@
 module Connection
   class Client
     include Connection
-    include Connection::IOMethods
 
-    attr_reader :host
-    attr_reader :port
+    attr_reader :io
 
-    def initialize(host, port)
-      @host = host
-      @port = port
+    def initialize(io)
+      @io = io
     end
 
-    def socket
-      @socket ||= TCPSocket.new host, port
+    def self.build(io, scheduler=nil)
+      instance = new io
+      instance.configure_dependencies scheduler: scheduler
+      instance
+    end
+
+    def readline(*arguments)
+      readline_command.(*arguments)
+    end
+    alias_method :gets, :readline
+
+    def max_read_size
+      8192
+    end
+
+    def readline_command
+      @readline_command ||= readline.build io, scheduler
+    end
+
+    def read(bytes=nil, outbuf=nil)
+      bytes ||= max_read_size
+
+      logger.trace "Reading (Bytes Requested: #{bytes}, Fileno: #{fileno.inspect})"
+
+      data = Operation.read to_io, scheduler do
+        io.read_nonblock bytes, outbuf
+      end
+
+      logger.debug "Read (Size: #{data.bytesize}, Bytes Requested: #{bytes}, Fileno: #{fileno.inspect})"
+      logger.data data
+      data
+
+    rescue IOError => error
+      telemetry.closed
+      raise error
+
+    rescue Errno::ECONNRESET => error
+      telemetry.connection_reset
+      raise error
+    end
+
+    def write(data)
+      logger.trace "Writing (Size: #{data.bytesize}, Fileno: #{fileno.inspect})"
+      logger.data data
+
+      bytes_written = Operation.write to_io, scheduler do
+        io.write_nonblock data
+      end
+
+      logger.debug "Wrote (Size: #{bytes_written}, Fileno: #{fileno.inspect})"
+      bytes_written
+
+    rescue Errno::EPIPE => error
+      telemetry.broken_pipe
+      raise error
     end
   end
 end
