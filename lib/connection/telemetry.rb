@@ -81,11 +81,5 @@ module Connection
         hash
       end
     end
-
-    class Substitute
-      def self.build
-        Telemetry.new
-      end
-    end
   end
 end
