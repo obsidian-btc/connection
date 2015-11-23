@@ -22,7 +22,7 @@ module Connection
         output = ''
 
         Operation.read io, scheduler do |operation|
-          next_char = io.read(1)
+          next_char = io.read_nonblock(1)
           next unless next_char
           operation.reset_retries
 
