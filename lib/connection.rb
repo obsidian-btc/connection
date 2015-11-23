@@ -11,7 +11,6 @@ require 'telemetry/logger'
 
 require 'connection/error'
 require 'connection/connection'
-require 'connection/telemetry'
 
 require 'connection/reactor/dispatcher'
 
@@ -24,6 +23,7 @@ require 'connection/scheduler'
 require 'connection/client'
 require 'connection/client/readline'
 require 'connection/client/ssl'
+require 'connection/client/telemetry'
 require 'connection/server'
 require 'connection/server/ssl'
 require 'connection/server/stats'
