@@ -49,9 +49,9 @@ module Connection
       attempt ||= -1
 
       attempt += 1
-      logger.trace "Invoking Action (Fileno: #{io.fileno.inspect}, Attept: #{attempt})"
+      logger.trace "Invoking Action (Fileno: #{io.fileno.inspect}, Attempt: #{attempt})"
       result = action.(self, attempt)
-      logger.debug "Action Invoked Successfully (Fileno: #{io.fileno.inspect}, Attepmt: #{attempt})"
+      logger.debug "Action Invoked Successfully (Fileno: #{io.fileno.inspect}, Attempt: #{attempt})"
       raise ForceRetry if result.nil?
       result
 
