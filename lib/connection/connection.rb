@@ -19,7 +19,7 @@ module Connection
   end
 
   def self.server(port, scheduler=nil, ssl: nil)
-    tcp_server = TCPServer.new port
+    tcp_server = TCPServer.new '0.0.0.0', port
 
     if ssl
       ssl_context = if ssl == true then self.ssl_context else ssl end
