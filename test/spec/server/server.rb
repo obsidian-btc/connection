@@ -6,11 +6,16 @@ describe 'Server Connection' do
     server = Connection::Server.new tcp_server
     client_to_server_socket = TCPSocket.new '127.0.0.1', 2000
 
-    server_to_client_connection = server.accept
+    begin
+      server_to_client_connection = server.accept
 
-    client_to_server_socket.write 'some-message'
-    data = server_to_client_connection.read
-    assert data, :equals => 'some-message'
+      client_to_server_socket.write 'some-message'
+      data = server_to_client_connection.read
+      assert data, :equals => 'some-message'
+    ensure
+      tcp_server.close unless tcp_server.closed?
+      client_to_server_socket.close unless client_to_server_socket.closed?
+    end
   end
 
   describe 'Stats' do
