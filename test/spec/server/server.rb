@@ -25,9 +25,4 @@ describe 'Server Connection' do
       assert connection.nil?
     end
   end
-
-  describe 'Stats' do
-    specify 'Bytes Sent/Received'
-    specify 'Total Connections'
-  end
 end

@@ -12,8 +12,6 @@ require 'telemetry/logger'
 require 'connection/error'
 require 'connection/connection'
 
-require 'connection/reactor/dispatcher'
-
 require 'connection/scheduler/blocking'
 require 'connection/scheduler/cooperative/fiber_substitute'
 require 'connection/scheduler/cooperative'
