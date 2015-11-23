@@ -26,8 +26,27 @@ module Connection
       return count * 1024
     end
 
+    def pair(port=nil, &block)
+      port ||= 2000
+
+      server = Connection.server port
+      remote = Connection.client '127.0.0.1', port
+      local = server.accept
+
+      remote.io.sync = true
+      local.io.sync = true
+
+      block.(remote, local, server)
+
+    ensure
+
+      remote.close unless remote.closed?
+      local.close unless local.closed?
+      server.close
+    end
+
     def tcp_pair(port=nil, &block)
-      port ||= 90210
+      port ||= 2000
 
       server = TCPServer.new '127.0.0.1', port
       client = TCPSocket.new '127.0.0.1', port
@@ -45,13 +64,10 @@ module Connection
       server.close
     end
 
-    def reset_connection(port=nil, &block)
-      tcp_pair port do |client, server|
-        linger = [1,0].pack 'ii'
-        server.setsockopt Socket::SOL_SOCKET, Socket::SO_LINGER, linger
-
-        block.(client, server)
-      end
+    def reset_connection(socket)
+      linger = [1,0].pack 'ii'
+      socket.setsockopt Socket::SOL_SOCKET, Socket::SO_LINGER, linger
+      socket.close
     end
   end
 end

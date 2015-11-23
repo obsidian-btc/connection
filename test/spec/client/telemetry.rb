@@ -3,7 +3,7 @@ require_relative './client_spec_init'
 describe 'Client Telemetry' do
   now = Time.parse(Controls::Time.reference)
 
-  specify 'Reads' do
+  specify 'Received from Server' do
     telemetry = Connection::Client::Telemetry.new
     telemetry.clock.now = now
 
@@ -21,7 +21,7 @@ describe 'Client Telemetry' do
     TELEMETRY
   end
 
-  specify 'Writes' do
+  specify 'Sent to Server' do
     telemetry = Connection::Client::Telemetry.new
     telemetry.clock.now = now
 

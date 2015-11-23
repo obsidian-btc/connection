@@ -34,7 +34,7 @@ module Connection
   def self.included(cls)
     cls.dependency :logger, ::Telemetry::Logger
     cls.dependency :scheduler, Scheduler
-    cls.dependency :telemetry
+    cls.dependency :telemetry, Telemetry
   end
 
   def close

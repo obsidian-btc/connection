@@ -38,6 +38,9 @@ module Connection
 
       logger.debug "Read (Size: #{data.bytesize}, Bytes Requested: #{bytes}, Fileno: #{fileno.inspect})"
       logger.data data
+
+      telemetry.read data
+
       data
 
     rescue IOError => error
@@ -58,6 +61,9 @@ module Connection
       end
 
       logger.debug "Wrote (Size: #{bytes_written}, Fileno: #{fileno.inspect})"
+
+      telemetry.wrote data, bytes_written
+
       bytes_written
 
     rescue Errno::EPIPE => error

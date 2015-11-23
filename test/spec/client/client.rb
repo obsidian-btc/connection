@@ -69,8 +69,8 @@ describe 'Client Connection' do
       end
 
       specify 'Remote Reset Connection' do
-        Connection::Controls.reset_connection do |io, remote|
-          remote.close
+        Connection::Controls.tcp_pair do |io, remote|
+          Connection::Controls.reset_connection remote
 
           client = Connection::Client.build io
 
@@ -111,12 +111,13 @@ describe 'Client Connection' do
         end
 
         assert client.telemetry.broken_pipe?
+        assert error
       end
     end
 
     specify 'Remote Reset Connection' do
-      Connection::Controls.reset_connection do |io, remote|
-        remote.close
+      Connection::Controls.tcp_pair do |io, remote|
+        Connection::Controls.reset_connection remote
 
         client = Connection::Client.build io
 
