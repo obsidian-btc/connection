@@ -5,7 +5,7 @@ describe 'Blocking Scheduling' do
     scheduler = Connection::Scheduler::Blocking.new 1
 
     specify 'Returns After File is Readable' do
-      read_io, write_io = Connection::Controls.blocked_read_pair
+      read_io, write_io = Connection::Controls::IO.blocked_read_pair
       output = nil
 
       spawn_thread do
@@ -24,7 +24,8 @@ describe 'Blocking Scheduling' do
     scheduler = Connection::Scheduler::Blocking.new 1
 
     specify 'Returns After File is Writable' do
-      read_io, write_io, bytes_in_write_buffer = Connection::Controls.blocked_write_pair
+      read_io, write_io, bytes_in_write_buffer =
+        Connection::Controls::IO.blocked_write_pair
 
       thread = spawn_thread do
         scheduler.wait_writable write_io

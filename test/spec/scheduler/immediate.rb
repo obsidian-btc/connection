@@ -3,7 +3,7 @@ require_relative './scheduler_spec_init'
 describe 'Immediate Scheduling' do
   describe 'Waiting Until File is Readable' do
     specify 'Returns Immediately' do
-      io, * = Connection::Controls.blocked_read_pair
+      io, * = Connection::Controls::IO.blocked_read_pair
       scheduler = Connection::Scheduler::Immediate.new
 
       scheduler.wait_readable io
@@ -19,7 +19,7 @@ describe 'Immediate Scheduling' do
 
   describe 'Waiting Until File is Writable' do
     specify 'Returns Immediately' do
-      *, io, _ = Connection::Controls.blocked_write_pair
+      *, io, _ = Connection::Controls::IO.blocked_write_pair
       scheduler = Connection::Scheduler::Immediate.new
 
       scheduler.wait_writable io

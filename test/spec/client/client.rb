@@ -53,7 +53,7 @@ describe 'Client Connection' do
 
     describe 'Errors' do
       specify 'Remote Closed Connection' do
-        Connection::Controls.tcp_pair do |io, remote|
+        Connection::Controls::IO.tcp_pair do |io, remote|
           remote.close
 
           client = Connection::Client.build io
@@ -69,8 +69,8 @@ describe 'Client Connection' do
       end
 
       specify 'Remote Reset Connection' do
-        Connection::Controls.tcp_pair do |io, remote|
-          Connection::Controls.reset_connection remote
+        Connection::Controls::IO.tcp_pair do |io, remote|
+          Connection::Controls::IO.reset_connection remote
 
           client = Connection::Client.build io
 
@@ -98,7 +98,7 @@ describe 'Client Connection' do
     end
 
     specify 'Remote Closed Connection' do
-      Connection::Controls.tcp_pair 9988 do |io, remote|
+      Connection::Controls::IO.tcp_pair 9988 do |io, remote|
         remote.close
 
         client = Connection::Client.build io
@@ -116,8 +116,8 @@ describe 'Client Connection' do
     end
 
     specify 'Remote Reset Connection' do
-      Connection::Controls.tcp_pair do |io, remote|
-        Connection::Controls.reset_connection remote
+      Connection::Controls::IO.tcp_pair do |io, remote|
+        Connection::Controls::IO.reset_connection remote
 
         client = Connection::Client.build io
 

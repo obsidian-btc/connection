@@ -29,7 +29,7 @@ describe 'Server Statistics' do
 
     specify 'Client Resets Connection' do
       Connection::Controls.pair do |remote, local, server|
-        Connection::Controls.reset_connection remote.to_io
+        Connection::Controls::IO.reset_connection remote.to_io
 
         begin
           local.read
@@ -73,7 +73,7 @@ describe 'Server Statistics' do
 
     specify 'Client Resets Connection' do
       Connection::Controls.pair do |remote, local, server|
-        Connection::Controls.reset_connection remote.to_io
+        Connection::Controls::IO.reset_connection remote.to_io
 
         begin
           local.write 'some-message'
