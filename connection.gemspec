@@ -2,7 +2,7 @@
 Gem::Specification.new do |s|
   s.name = 'connection'
   s.version = '0.1.1'
-  s.summary = 'Persistent TCP connection library'
+  s.summary = 'TCP client/server connection library'
   s.description = ' '
 
   s.authors = ['Obsidian Software, Inc']
