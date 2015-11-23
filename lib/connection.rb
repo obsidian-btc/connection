@@ -1,6 +1,7 @@
 require 'json'
 require 'fiber'
 require 'socket'
+require 'observer'
 require 'openssl'
 
 require 'clock'
@@ -23,7 +24,6 @@ require 'connection/scheduler'
 require 'connection/client'
 require 'connection/client/readline'
 require 'connection/client/ssl'
-require 'connection/client/telemetry'
 require 'connection/server'
 require 'connection/server/ssl'
 
