@@ -5,6 +5,7 @@ module Connection
     attr_accessor :retries
     attr_reader :max_retries
 
+    dependency :logger, ::Telemetry::Logger
     dependency :scheduler, Scheduler
 
     def initialize(action, io, retries)
@@ -16,6 +17,8 @@ module Connection
 
     def self.build(io, scheduler=nil, &action)
       instance = new action, io, max_retries
+
+      ::Telemetry::Logger.configure instance
 
       if scheduler
         instance.scheduler = scheduler
@@ -46,11 +49,14 @@ module Connection
       attempt ||= -1
 
       attempt += 1
+      logger.trace "Invoking Action (Fileno: #{io.fileno.inspect}, Attept: #{attempt})"
       result = action.(self, attempt)
+      logger.debug "Action Invoked Successfully (Fileno: #{io.fileno.inspect}, Attepmt: #{attempt})"
       raise ForceRetry if result.nil?
       result
 
-    rescue IO::WaitReadable, IO::WaitWritable
+    rescue IO::WaitReadable, IO::WaitWritable => error
+      logger.debug "Action Raised Error (Error: #{error.class.name}, Fileno: #{io.fileno.inspect}, Attempt: #{attempt})"
       consume_retry_attempt
       wait and retry
     end
