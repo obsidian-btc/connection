@@ -21,7 +21,7 @@ module Connection
         io.accept_nonblock
       end
 
-      stats.open_connections += 1
+      stats.connection_opened
 
       logger.debug "Accepted Connection (Client Fileno: #{socket.fileno}, Server Fileno: #{fileno})"
 

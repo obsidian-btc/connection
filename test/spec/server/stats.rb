@@ -22,6 +22,7 @@ describe 'Server Statistics' do
         end
 
         assert server.stats.open_connections == 0
+        assert server.stats.closed_connections = 1
         assert server.stats.total_connections == 1
       end
     end
@@ -36,6 +37,7 @@ describe 'Server Statistics' do
         end
 
         assert server.stats.open_connections == 0
+        assert server.stats.reset_connections = 1
         assert server.stats.total_connections == 1
       end
     end
@@ -64,6 +66,7 @@ describe 'Server Statistics' do
         end
 
         assert server.stats.open_connections == 0
+        assert server.stats.broken_pipes == 1
         assert server.stats.total_connections == 1
       end
     end
@@ -78,6 +81,7 @@ describe 'Server Statistics' do
         end
 
         assert server.stats.open_connections == 0
+        assert server.stats.broken_pipes == 1
         assert server.stats.total_connections == 1
       end
     end
