@@ -14,6 +14,15 @@ module Connection
       instance
     end
 
+    def close
+      io.close
+      telemetry.closed
+
+    rescue IOError => error
+      telemetry.closed
+      raise error
+    end
+
     def readline(*arguments)
       readline_command.(*arguments)
     end
@@ -50,6 +59,10 @@ module Connection
     rescue Errno::ECONNRESET => error
       telemetry.connection_reset
       raise error
+    end
+
+    def telemetry
+      @telemetry ||= Telemetry.new
     end
 
     def write(data)

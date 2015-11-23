@@ -34,16 +34,10 @@ module Connection
   def self.included(cls)
     cls.dependency :logger, ::Telemetry::Logger
     cls.dependency :scheduler, Scheduler
-    cls.dependency :telemetry, Telemetry
   end
 
   def close
     io.close
-    telemetry.closed
-
-  rescue IOError => error
-    telemetry.closed
-    raise error
   end
 
   def closed?
@@ -58,8 +52,6 @@ module Connection
     else
       Scheduler::Blocking.configure self
     end
-
-    Telemetry.configure self
   end
 
   def io

@@ -1,6 +1,6 @@
 require_relative './server_spec_init'
 
-describe 'Server Telemetry' do
+describe 'Server Statistics' do
   describe 'Receiving From Client' do
     specify 'Bytes Received' do
       Connection::Controls.pair do |remote, local, server|
@@ -8,7 +8,7 @@ describe 'Server Telemetry' do
 
         local.read
 
-        assert server.telemetry.bytes_received == 12
+        assert server.stats.bytes_received == 12
       end
     end
 
@@ -21,8 +21,8 @@ describe 'Server Telemetry' do
         rescue IOError
         end
 
-        assert server.telemetry.open_connections == 0
-        assert server.telemetry.total_connections == 1
+        assert server.stats.open_connections == 0
+        assert server.stats.total_connections == 1
       end
     end
 
@@ -35,8 +35,8 @@ describe 'Server Telemetry' do
         rescue Errno::ECONNRESET
         end
 
-        assert server.telemetry.open_connections == 0
-        assert server.telemetry.total_connections == 1
+        assert server.stats.open_connections == 0
+        assert server.stats.total_connections == 1
       end
     end
   end
@@ -48,7 +48,7 @@ describe 'Server Telemetry' do
 
         remote.read
 
-        assert server.telemetry.bytes_sent == 12
+        assert server.stats.bytes_sent == 12
       end
     end
 
@@ -63,8 +63,8 @@ describe 'Server Telemetry' do
         rescue Errno::EPIPE
         end
 
-        assert server.telemetry.open_connections == 0
-        assert server.telemetry.total_connections == 1
+        assert server.stats.open_connections == 0
+        assert server.stats.total_connections == 1
       end
     end
 
@@ -77,8 +77,8 @@ describe 'Server Telemetry' do
         rescue Errno::EPIPE
         end
 
-        assert server.telemetry.open_connections == 0
-        assert server.telemetry.total_connections == 1
+        assert server.stats.open_connections == 0
+        assert server.stats.total_connections == 1
       end
     end
   end
@@ -87,8 +87,8 @@ describe 'Server Telemetry' do
     Connection::Controls.pair do |remote, local, server|
       local.close
 
-      assert server.telemetry.open_connections == 0
-      assert server.telemetry.total_connections == 1
+      assert server.stats.open_connections == 0
+      assert server.stats.total_connections == 1
     end
   end
 end

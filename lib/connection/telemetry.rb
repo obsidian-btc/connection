@@ -4,9 +4,7 @@ module Connection
 
     attr_accessor :bytes_received
     attr_accessor :bytes_sent
-    attr_accessor :closed_connections
     attr_reader :records
-    attr_accessor :open_connections
 
     dependency :clock, Clock::UTC
 
@@ -14,8 +12,6 @@ module Connection
       @records = []
       @bytes_received = 0
       @bytes_sent = 0
-      @open_connections = 0
-      @closed_connections = 0
     end
 
     def self.build
@@ -46,11 +42,6 @@ module Connection
       records.any? { |record| record.operation == :closed }
     end
 
-    def connection_closed
-      self.open_connections -= 1
-      self.closed_connections += 1
-    end
-
     def connection_reset
       record :connection_reset
     end
@@ -74,10 +65,6 @@ module Connection
       record = Record.new operation, data, timestamp
       records << record
       notify_observers record
-    end
-
-    def total_connections
-      open_connections + closed_connections
     end
 
     def wrote(data, bytes_written)

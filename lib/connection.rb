@@ -26,5 +26,6 @@ require 'connection/client/readline'
 require 'connection/client/ssl'
 require 'connection/server'
 require 'connection/server/ssl'
+require 'connection/server/stats'
 
 require 'connection/operation'
