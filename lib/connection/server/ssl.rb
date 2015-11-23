@@ -14,7 +14,13 @@ module Connection
         logger.debug "Accepted Connection (Client Fileno: #{ssl_socket.to_io.fileno}, Server Fileno: #{fileno})"
 
         client = build_client ssl_socket, Client
-        client.handshake
+
+        begin
+          client.handshake
+        rescue OpenSSL::SSL::SSLError => error
+          return nil
+        end
+
         client
       end
 

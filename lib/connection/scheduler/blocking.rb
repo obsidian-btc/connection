@@ -30,16 +30,16 @@ module Connection
       def wait_readable(io)
         return if io.is_a? StringIO
         loop do
-          io, * = IO.select [io], [], [], poll_interval
-          break if io
+          ready_io, * = IO.select [io], [], [], poll_interval
+          break if ready_io
         end
       end
 
       def wait_writable(io, &block)
         return if io.is_a? StringIO
         loop do
-          ready, * = IO.select [], [io], [], poll_interval
-          break if ready
+          ready_io, * = IO.select [], [io], [], poll_interval
+          break if ready_io
         end
       end
     end

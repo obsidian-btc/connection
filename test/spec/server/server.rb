@@ -18,6 +18,14 @@ describe 'Server Connection' do
     end
   end
 
+  specify 'Error During OpenSSL Handshaking' do
+    Connection::Controls::SSL.pair do |server, client|
+      client.to_io.close
+      connection = server.accept
+      assert connection.nil?
+    end
+  end
+
   describe 'Stats' do
     specify 'Bytes Sent/Received'
     specify 'Total Connections'

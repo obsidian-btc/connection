@@ -19,6 +19,26 @@ module Connection
         return client_context, server_context
       end
 
+      def pair(port=nil, &block)
+        port ||= 2001
+
+        client_context, server_context = context_pair
+
+        server = Connection.server port, ssl: server_context
+
+        client_socket = TCPSocket.new '127.0.0.1', port
+        ssl_socket = OpenSSL::SSL::SSLSocket.new client_socket, client_context
+        client = Connection::Client::SSL.build ssl_socket
+
+        begin
+          block.(server, client)
+
+        ensure
+          server.close unless server.closed?
+          client.close unless client.closed?
+        end
+      end
+
       def self_signed_cert
         name = OpenSSL::X509::Name.parse 'CN=nobody/DC=example'
         key = OpenSSL::PKey::RSA.new 2048
