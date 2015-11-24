@@ -47,10 +47,10 @@ module Connection
     # exceptions for flow control here.
     def call
       result = nil
+      logger.trace "Invoking Action (Fileno: #{io.fileno.inspect})"
 
       (1..Float::INFINITY).each do |attempt|
         attempt += 1
-        logger.trace "Invoking Action (Fileno: #{io.fileno.inspect}, Attempt: #{attempt})"
 
         result = perform_action attempt
         break if result
