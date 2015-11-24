@@ -46,24 +46,37 @@ module Connection
     # TODO: When ruby 2.3 gets merged (and jruby supports it), we can stop using
     # exceptions for flow control here.
     def call
-      attempt ||= -1
+      result = nil
 
-      attempt += 1
-      logger.trace "Invoking Action (Fileno: #{io.fileno.inspect}, Attempt: #{attempt})"
-      result = action.(self, attempt)
-      logger.debug "Action Invoked Successfully (Fileno: #{io.fileno.inspect}, Attempt: #{attempt})"
-      raise ForceRetry if result.nil?
+      (1..Float::INFINITY).each do |attempt|
+        attempt += 1
+        logger.trace "Invoking Action (Fileno: #{io.fileno.inspect}, Attempt: #{attempt})"
+
+        result = perform_action attempt
+        break if result
+
+        self.retries += 1
+        raise RetryCountExceeded if retries == max_retries
+        raise SystemStackError if attempt > max_attempts
+
+        wait
+      end
+
+      logger.debug "Action Invoked Successfully (Fileno: #{io.fileno.inspect})"
       result
+    end
+
+    # This is a safeguard against an operation never completing.
+    def max_attempts
+      1_000_000
+    end
+
+    def perform_action(attempt=nil)
+      action.(self, attempt)
 
     rescue IO::WaitReadable, IO::WaitWritable => error
       logger.debug "Action Raised Error (Error: #{error.class.name}, Fileno: #{io.fileno.inspect}, Attempt: #{attempt})"
-      consume_retry_attempt
-      wait and retry
-    end
-
-    def consume_retry_attempt
-      self.retries += 1
-      raise RetryCountExceeded if retries == max_retries
+      return nil
     end
 
     def reset_retries
@@ -89,11 +102,6 @@ module Connection
       def wait_method
         :wait_writable
       end
-    end
-
-    class ForceRetry < Error
-      include IO::WaitReadable
-      include IO::WaitWritable
     end
 
     RetryCountExceeded = Class.new Error
