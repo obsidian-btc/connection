@@ -1,7 +1,7 @@
 module Connection
   module Scheduler
     class Cooperative
-      dependency :dispatcher #, Reactor::Dispatcher
+      dependency :dispatcher
       dependency :logger, ::Telemetry::Logger
       dependency :fiber_manager, FiberSubstitute
 
