@@ -14,6 +14,8 @@ module Connection
       end
 
       def wait_readable(io)
+        return if IO.select [io], [], [], 0
+
         fiber = fiber_manager.current
         dispatcher.wait_readable io do
           fiber.resume
@@ -24,6 +26,8 @@ module Connection
       end
 
       def wait_writable(io)
+        return if IO.select [], [io], [], 0
+
         fiber = fiber_manager.current
         dispatcher.wait_writable io do
           fiber.resume

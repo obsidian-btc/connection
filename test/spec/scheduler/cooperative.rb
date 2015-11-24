@@ -29,7 +29,7 @@ describe 'Cooperative Scheduling' do
         dispatcher.trigger
       end
 
-      scheduler.wait_writable read_io
+      scheduler.wait_writable write_io
 
       assert scheduler.fiber_manager.context_switched?
     end
