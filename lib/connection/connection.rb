@@ -59,7 +59,11 @@ module Connection
   end
 
   def fileno
-    to_io.fileno
+    if closed?
+      nil
+    else
+      to_io.fileno
+    end
   end
 
   def to_io

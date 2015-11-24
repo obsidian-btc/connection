@@ -66,6 +66,8 @@ module Connection
     end
 
     def write(data)
+      data = String(data)
+
       logger.trace "Writing (Size: #{data.bytesize}, Fileno: #{fileno.inspect})"
       logger.data data
 

@@ -145,6 +145,7 @@ describe 'Client Connection' do
       client.close
 
       assert client.closed?
+      assert client.fileno.nil?
       assert client.telemetry.closed?
     end
 
