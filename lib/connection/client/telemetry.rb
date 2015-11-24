@@ -10,9 +10,9 @@ module Connection
       dependency :clock, Clock::UTC
 
       def initialize
-        @records = []
         @bytes_received = 0
         @bytes_sent = 0
+        @records = []
       end
 
       def self.build

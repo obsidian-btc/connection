@@ -23,21 +23,21 @@ module Connection
       raise error
     end
 
+    def default_max_read_size
+      8192
+    end
+
     def readline(*arguments)
       readline_command.(*arguments)
     end
     alias_method :gets, :readline
-
-    def max_read_size
-      8192
-    end
 
     def readline_command
       @readline_command ||= Readline.build io, scheduler
     end
 
     def read(bytes=nil, outbuf=nil)
-      bytes ||= max_read_size
+      bytes ||= default_max_read_size
 
       logger.trace "Reading (Bytes Requested: #{bytes}, Fileno: #{fileno.inspect})"
 
