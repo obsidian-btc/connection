@@ -1,18 +1,55 @@
 require_relative './script_init'
 
+require 'process_host'
+
 if ENV['SSL'] == 'on'
-  client_ssl_context, server_ssl_context = Connection::Controls::SSL.context_pair
+  @client_ssl_context, @erver_ssl_context = Connection::Controls::SSL.context_pair
 end
 
-counter = (ENV['COUNTER'] || '3').to_i
+def client_ssl_context
+  @client_ssl_context
+end
 
-reactor, scheduler = Connection::Controls.example_reactor_loop
+def server_ssl_context
+  @server_ssl_context
+end
 
-reactor.add_fiber do
-  server = Connection.server 2000, scheduler, ssl: server_ssl_context
-  client = server.accept
+class Client
+  attr_accessor :counter
 
-  reactor.add_fiber do
+  def initialize(counter)
+    @counter = counter
+  end
+
+  def start
+    until counter.zero?
+      request = "old-counter=#{counter}"
+
+      connection.write request
+
+      response = connection.read
+
+      __logger.info "Read response: #{response.inspect}"
+      *, new_counter = response.split '=', 2
+      self.counter = new_counter.to_i
+    end
+  end
+
+  def connection
+    @connection ||= Connection.client '127.0.0.1', 2113, ssl: client_ssl_context
+  end
+
+  module ProcessHostIntegration
+    def change_connection_scheduler(scheduler)
+      connection.scheduler = scheduler
+    end
+  end
+end
+
+class Server
+  def start
+    client = connection.accept
+
     loop do
       request = client.read
 
@@ -26,24 +63,23 @@ reactor.add_fiber do
       break if new_counter.zero?
     end
   end
-end
 
-reactor.add_fiber do
-  client = Connection.client '127.0.0.1', 2000, scheduler: scheduler, ssl: client_ssl_context
+  def connection
+    @connection ||= Connection.server 2113, ssl: server_ssl_context
+  end
 
-  until counter.zero?
-    request = "old-counter=#{counter}"
-
-    client.write request
-
-    response = client.read
-
-    __logger.info "Read response: #{response.inspect}"
-    *, new_counter = response.split '=', 2
-    counter = new_counter.to_i
+  module ProcessHostIntegration
+    def change_connection_scheduler(scheduler)
+      connection.scheduler = scheduler
+    end
   end
 end
 
-reactor.start
+counter = (ENV['COUNTER'] || '3').to_i
+client = Client.new counter
+server = Server.new
 
-fail unless counter.zero?
+cooperation = ProcessHost::Cooperation.build
+cooperation.register server, 'some-server'
+cooperation.register client, 'some-client'
+cooperation.start
