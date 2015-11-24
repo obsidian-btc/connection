@@ -57,6 +57,7 @@ describe 'Client Connection' do
           remote.close
 
           client = Connection::Client.build io
+          client.telemetry.start_recording
 
           begin
             client.read
@@ -73,6 +74,7 @@ describe 'Client Connection' do
           Connection::Controls::IO.reset_connection remote
 
           client = Connection::Client.build io
+          client.telemetry.start_recording
 
           begin
             client.read
@@ -102,6 +104,7 @@ describe 'Client Connection' do
         remote.close
 
         client = Connection::Client.build io
+        client.telemetry.start_recording
 
         begin
           loop do
@@ -120,6 +123,7 @@ describe 'Client Connection' do
         Connection::Controls::IO.reset_connection remote
 
         client = Connection::Client.build io
+        client.telemetry.start_recording
 
         begin
           client.write 'some-message'
@@ -136,6 +140,7 @@ describe 'Client Connection' do
     specify 'Graceful' do
       io = StringIO.new
       client = Connection::Client.build io
+      client.telemetry.start_recording
 
       client.close
 
@@ -146,6 +151,7 @@ describe 'Client Connection' do
     specify 'Already Closed' do
       io = StringIO.new
       client = Connection::Client.build io
+      client.telemetry.start_recording
 
       io.close
 

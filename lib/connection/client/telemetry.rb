@@ -5,14 +5,13 @@ module Connection
 
       attr_accessor :bytes_received
       attr_accessor :bytes_sent
-      attr_reader :records
+      attr_writer :records
 
       dependency :clock, Clock::UTC
 
       def initialize
         @bytes_received = 0
         @bytes_sent = 0
-        @records = []
       end
 
       def self.build
@@ -68,6 +67,14 @@ module Connection
         notify_observers record
       end
 
+      def records
+        @records or NullRecords
+      end
+
+      def start_recording
+        self.records = []
+      end
+
       def wrote(data, bytes_written)
         data = data.encode 'ASCII-8BIT'
         written = data.slice! 0, bytes_written
@@ -80,6 +87,17 @@ module Connection
           hash = { :operation => operation, :time => timestamp.to_s }
           hash[:data] = data if data
           hash
+        end
+      end
+
+      module NullRecords
+        extend self
+        extend Enumerable
+
+        def <<(*)
+        end
+
+        def each
         end
       end
     end

@@ -5,6 +5,7 @@ describe 'Client Telemetry' do
 
   specify 'Received from Server' do
     telemetry = Connection::Client::Telemetry.new
+    telemetry.start_recording
     telemetry.clock.now = now
 
     telemetry.read 'some-message'
@@ -23,6 +24,7 @@ describe 'Client Telemetry' do
 
   specify 'Sent to Server' do
     telemetry = Connection::Client::Telemetry.new
+    telemetry.start_recording
     telemetry.clock.now = now
 
     telemetry.wrote 'some-message', 4
@@ -41,6 +43,7 @@ describe 'Client Telemetry' do
 
   specify 'Bytes Received' do
     telemetry = Connection::Client::Telemetry.new
+    telemetry.start_recording
     telemetry.clock.now = now
 
     telemetry.read 'some-message'
@@ -51,6 +54,7 @@ describe 'Client Telemetry' do
 
   specify 'Bytes Sent' do
     telemetry = Connection::Client::Telemetry.new
+    telemetry.start_recording
     telemetry.clock.now = now
 
     telemetry.wrote 'some-message', 1
@@ -61,18 +65,21 @@ describe 'Client Telemetry' do
 
   specify 'Connection Reset' do
     telemetry = Connection::Client::Telemetry.new
+    telemetry.start_recording
     telemetry.connection_reset
     assert telemetry.connection_reset?
   end
 
   specify 'Remote Connection Closed' do
     telemetry = Connection::Client::Telemetry.new
+    telemetry.start_recording
     telemetry.broken_pipe
     assert telemetry.broken_pipe?
   end
 
   specify 'Connection Closed Gracefully' do
     telemetry = Connection::Client::Telemetry.new
+    telemetry.start_recording
     telemetry.closed
     assert telemetry.closed?
   end

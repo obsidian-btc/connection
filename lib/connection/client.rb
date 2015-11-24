@@ -62,7 +62,7 @@ module Connection
     end
 
     def telemetry
-      @telemetry ||= Telemetry.new
+      @telemetry ||= Telemetry.build
     end
 
     def write(data)
