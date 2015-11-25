@@ -38,4 +38,26 @@ describe 'Reading a Single Line' do
 
     assert line == "some-line\nother"
   end
+
+  specify 'Performance' do
+    next unless ENV['BENCHMARK'] == 'on'
+    Connection::Controls::IO.tcp_pair do |client, server|
+      readline = Connection::Client::Readline.build server
+
+      require 'benchmark/ips'
+      Benchmark.ips do |bm|
+        bm.config :warmup => 1
+
+        bm.report 'raw' do
+          client.write "some-line\r\n"
+          server.readline "\r\n"
+        end
+
+        bm.report 'readline' do
+          client.write "some-line\r\n"
+          readline.("\r\n")
+        end
+      end
+    end
+  end
 end

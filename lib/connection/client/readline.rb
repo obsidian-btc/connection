@@ -11,23 +11,18 @@ module Connection
         @scheduler = scheduler
       end
 
-      def self.build(io, scheduler)
+      def self.build(io, scheduler=nil)
+        scheduler ||= Scheduler::Blocking.build
+
         instance = new io, scheduler
         ::Telemetry::Logger.configure instance
         instance
       end
 
-      def call(sep_or_limit=nil, limit=nil)
-        separator, limit = resolve_arguments sep_or_limit, limit
-        output = ''
-
-        Operation.read io, scheduler do |operation|
-          next_char = io.read_nonblock(1)
-          next unless next_char
-          operation.reset_retries
-
-          output << next_char
-          output if output.end_with?(separator) || output.bytesize == limit
+      def call(*arguments)
+        Operation.read io, scheduler do |operation, attempt|
+          next if attempt.zero?
+          io.readline *arguments
         end
       end
 
