@@ -50,9 +50,7 @@ module Connection
       fileno = io.fileno unless io.closed?
       logger.trace "Invoking Action (Fileno: #{fileno.inspect})"
 
-      (1..Float::INFINITY).each do |attempt|
-        attempt += 1
-
+      (0..Float::INFINITY).each do |attempt|
         result = perform_action attempt
         break if result
 
