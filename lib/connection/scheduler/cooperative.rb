@@ -22,7 +22,7 @@ module Connection
         end
         logger.trace "Pausing until readable (Fileno: #{io.fileno})"
         fiber_manager.yield
-        logger.trace "IO is ready for reading (Fileno: #{io.fileno})"
+        logger.debug "IO is ready for reading (Fileno: #{io.fileno})"
       end
 
       def wait_writable(io)
@@ -30,11 +30,13 @@ module Connection
 
         fiber = fiber_manager.current
         dispatcher.wait_writable io do
+          logger.trace "Resuming (Fileno: #{io.fileno})"
           fiber.resume
         end
+
         logger.trace "Pausing until writable (Fileno: #{io.fileno})"
         fiber_manager.yield
-        logger.trace "IO is ready for writing (Fileno: #{io.fileno})"
+        logger.debug "IO is ready for writing (Fileno: #{io.fileno})"
       end
     end
   end
