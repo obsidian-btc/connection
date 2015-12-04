@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 Gem::Specification.new do |s|
   s.name = 'connection'
-  s.version = '0.2.1'
+  s.version = '0.2.2'
   s.summary = 'TCP client/server connection library'
   s.description = ' '
 
