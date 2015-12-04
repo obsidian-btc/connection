@@ -76,7 +76,8 @@ module Connection
       end
 
       def wrote(data, bytes_written)
-        data = data.encode 'ASCII-8BIT'
+        data = data.dup
+        data.force_encoding 'ASCII-8BIT'
         written = data.slice! 0, bytes_written
         record :wrote, written
         self.bytes_sent += bytes_written

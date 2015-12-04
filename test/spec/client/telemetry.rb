@@ -83,4 +83,12 @@ describe 'Client Telemetry' do
     telemetry.closed
     assert telemetry.closed?
   end
+
+  specify 'Unicode' do
+    str = 'Message …'
+    telemetry = Connection::Client::Telemetry.new
+
+    telemetry.read str
+    telemetry.wrote str, str.bytesize
+  end
 end
