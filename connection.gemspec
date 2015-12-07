@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 Gem::Specification.new do |s|
   s.name = 'connection'
-  s.version = '0.2.2'
+  s.version = '0.2.3'
   s.summary = 'TCP client/server connection library'
   s.description = ' '
 
@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '>= 2.2.3'
 
   s.add_runtime_dependency 'clock'
+  s.add_runtime_dependency 'controls'
   s.add_runtime_dependency 'telemetry-logger'
 
   s.add_development_dependency 'benchmark-ips'
