@@ -1,3 +1,5 @@
+require 'controls'
+
 require 'connection/controls/controls'
 require 'connection/controls/io'
 require 'connection/controls/cooperative_dispatcher'

@@ -5,7 +5,6 @@ require 'observer'
 require 'openssl'
 
 require 'clock'
-require 'controls'
 require 'dependency'; Dependency.activate
 require 'telemetry/logger'
 
