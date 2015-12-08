@@ -1,9 +1,8 @@
 module Connection
-  def self.client(host, port, scheduler: nil, ssl: nil)
+  def self.client(host, port, scheduler: nil, ssl_context: nil)
     socket = TCPSocket.new host, port
 
-    if ssl
-      ssl_context = if ssl == true then self.ssl_context else ssl end
+    if ssl_context
       socket = OpenSSL::SSL::SSLSocket.new socket, ssl_context
 
       instance = Client::SSL.build socket, scheduler
@@ -14,15 +13,14 @@ module Connection
     end
   end
 
-  def self.ssl_context(context)
+  def self.ssl_context
     fail 'Construct default SSL context (perhaps with settings that point to cert/key)'
   end
 
-  def self.server(port, scheduler=nil, ssl: nil)
+  def self.server(port, scheduler=nil, ssl_context: nil)
     tcp_server = TCPServer.new '0.0.0.0', port
 
-    if ssl
-      ssl_context = if ssl == true then self.ssl_context else ssl end
+    if ssl_context
       ssl_socket = OpenSSL::SSL::SSLServer.new tcp_server, ssl_context
 
       Server::SSL.build ssl_socket, scheduler

@@ -18,8 +18,8 @@ module Connection
 
     ensure
 
-      remote.close unless remote.closed?
-      local.close unless local.closed?
+      remote.close unless remote && remote.closed?
+      local.close unless local && local.closed?
       server.close
     end
   end

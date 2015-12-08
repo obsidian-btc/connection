@@ -24,7 +24,7 @@ module Connection
 
         client_context, server_context = context_pair
 
-        server = Connection.server port, ssl: server_context
+        server = Connection.server port, ssl_context: server_context
 
         client_socket = TCPSocket.new '127.0.0.1', port
         ssl_socket = OpenSSL::SSL::SSLSocket.new client_socket, client_context
