@@ -32,14 +32,7 @@ module Connection
   def self.included(cls)
     cls.dependency :logger, ::Telemetry::Logger
     cls.dependency :scheduler, Scheduler
-  end
-
-  def close
-    io.close
-  end
-
-  def closed?
-    io.closed?
+    cls.send :include, IOProxy
   end
 
   def configure_dependencies(scheduler: nil)
@@ -49,26 +42,6 @@ module Connection
       self.scheduler = scheduler
     else
       Scheduler::Blocking.configure self
-    end
-  end
-
-  def io
-    fail
-  end
-
-  def fileno
-    if closed?
-      nil
-    else
-      to_io.fileno
-    end
-  end
-
-  def to_io
-    if io.respond_to? :to_io
-      io.to_io
-    else
-      io
     end
   end
 end

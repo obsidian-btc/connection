@@ -24,15 +24,15 @@ class Client
 
   def start
     until counter.zero?
-      request = "old-counter=#{counter}"
+      request = "old-counter=#{counter}\n"
 
       connection.write request
 
-      response = connection.read
+      response = connection.readline
 
       __logger.info "Read response: #{response.inspect}"
       *, new_counter = response.split '=', 2
-      self.counter = new_counter.to_i
+      self.counter = new_counter.chomp.to_i
     end
   end
 
@@ -59,12 +59,12 @@ class Server
     client = connection.accept
 
     loop do
-      request = client.read
+      request = client.readline
 
       __logger.info "Read request: #{request.inspect}"
       *, client_counter = request.split '=', 2
-      new_counter = client_counter.to_i - 1
-      response = "new-counter=#{new_counter}"
+      new_counter = client_counter.chomp.to_i - 1
+      response = "new-counter=#{new_counter}\n"
 
       client.write response
 

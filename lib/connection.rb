@@ -10,6 +10,7 @@ require 'telemetry/logger'
 
 require 'connection/error'
 require 'connection/connection'
+require 'connection/io_proxy'
 
 require 'connection/scheduler/blocking'
 require 'connection/scheduler/cooperative/fiber_substitute'

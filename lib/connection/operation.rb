@@ -1,5 +1,7 @@
 module Connection
   class Operation
+    include IOProxy
+
     attr_reader :action
     attr_reader :io
     attr_accessor :retries
@@ -47,7 +49,6 @@ module Connection
     # exceptions for flow control here.
     def call
       result = nil
-      fileno = io.fileno unless io.closed?
       logger.trace "Invoking Action (Fileno: #{fileno.inspect})"
 
       (0..Float::INFINITY).each do |attempt|
@@ -83,7 +84,7 @@ module Connection
     end
 
     def wait
-      scheduler.public_send wait_method, io
+      scheduler.public_send wait_method, to_io
       true
     end
 
