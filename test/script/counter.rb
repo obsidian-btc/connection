@@ -14,6 +14,34 @@ def server_ssl_context
   $server_ssl_context
 end
 
+class Pattern
+  attr_reader :counter
+
+  def initialize(counter)
+    @counter = counter
+  end
+
+  def self.call(counter)
+    instance = new counter
+    instance.to_s
+  end
+
+  def to_s
+    str = ''
+
+    counter.times do |value|
+      str << "counter=#{value}\r"
+    end
+
+    str << "counter=#{counter}\r"
+    str << "done\r"
+
+    str << 'some-text ' * counter
+
+    str
+  end
+end
+
 class Client
   attr_accessor :counter
   attr_accessor :scheduler
@@ -24,15 +52,15 @@ class Client
 
   def start
     until counter.zero?
-      request = "old-counter=#{counter}\n"
+      request = Pattern.(counter)
 
       connection.write request
 
-      response = connection.readline
+      response = connection.read
 
       __logger.info "Read response: #{response.inspect}"
       *, new_counter = response.split '=', 2
-      self.counter = new_counter.chomp.to_i
+      self.counter = new_counter.to_i
     end
   end
 
@@ -59,16 +87,23 @@ class Server
     client = connection.accept
 
     loop do
-      request = client.readline
+      counter = nil
 
-      __logger.info "Read request: #{request.inspect}"
-      *, client_counter = request.split '=', 2
-      new_counter = client_counter.chomp.to_i - 1
-      response = "new-counter=#{new_counter}\n"
+      loop do
+        line = client.readline("\r").chomp "\r"
+        break if line == 'done'
+        _, counter = line.split '=', 2
+      end
 
-      client.write response
+      counter = counter.to_i
 
-      break if new_counter.zero?
+      client.read(counter * 10)
+
+      __logger.info "Read counter: #{counter.inspect}"
+
+      counter -= 1
+      client.write "counter=#{counter}"
+      break if counter.zero?
     end
   end
 

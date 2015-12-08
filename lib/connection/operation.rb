@@ -75,7 +75,7 @@ module Connection
       action.(self, attempt)
 
     rescue IO::WaitReadable, IO::WaitWritable => error
-      logger.debug "Action Raised Error (Error: #{error.class.name}, Fileno: #{io.fileno.inspect}, Attempt: #{attempt})"
+      logger.debug "Action Raised Error (Error: #{error.class.name}, Fileno: #{fileno.inspect}, Attempt: #{attempt})"
       return nil
     end
 

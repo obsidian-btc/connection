@@ -21,7 +21,8 @@ module Connection
 
       def call(*arguments)
         Operation.read io, scheduler do |operation, attempt|
-          next if attempt.zero?
+          char = io.read_nonblock 1
+          io.ungetc char
           io.readline *arguments
         end
       end
