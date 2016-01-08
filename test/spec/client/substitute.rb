@@ -1,46 +1,151 @@
 require_relative './client_spec_init'
 
 describe 'Client Substitute' do
-  specify 'Standard Response Dialog is 501 Not Implemented' do
-    request = Connection::Controls::Messages::Requests.example
-    expected_response = Connection::Controls::Messages::Responses::NotImplemented.example
+  describe 'Reading' do
+    describe 'Expected' do
+      specify 'Unspecified Length' do
+        connection = Connection::Client::Substitute.build
+        connection.expect_read 'some-text'
 
-    connection = Connection::Client::Substitute.build
-    connection.write request
+        data = connection.read
 
-    actual_response = connection.read
-    assert actual_response == expected_response
-  end
-
-  describe 'Programming' do
-    specify 'Request Matches Programmed Dialog' do
-      request = Connection::Controls::Messages::Requests.example
-      expected_response = Connection::Controls::Messages::Responses.example
-
-      connection = Connection::Client::Substitute.build
-      connection.program request, expected_response
-
-      connection.write request
-
-      actual_response = connection.read
-      assert actual_response == expected_response
-    end
-
-    specify 'Request Does Not Match Programmed Dialog' do
-      expected_request = Connection::Controls::Messages::Requests.example
-      actual_request = Connection::Controls::Messages::Responses.example '/some-other-path'
-
-      connection = Connection::Client::Substitute.build
-      connection.program expected_request, 'doesnt-matter'
-
-      connection.write actual_request
-
-      begin
-        connection.read
-      rescue Connection::Client::Substitute::RequestMismatch => error
+        assert data == 'some-text'
       end
 
-      assert error
+      specify 'Specific Length' do
+        connection = Connection::Client::Substitute.build
+        connection.expect_read 'some-text'
+
+        data = connection.read 4
+
+        assert data == 'some'
+      end
     end
+
+    describe 'Unexpected' do
+      specify 'Nothing Programmed' do
+        connection = Connection::Client::Substitute.build
+
+        begin
+          connection.read
+        rescue IOError => error
+        end
+
+        assert error
+      end
+
+      specify 'Write is Programmed' do
+        connection = Connection::Client::Substitute.build
+        connection.expect_write 'some-text'
+
+        begin
+          connection.read
+        rescue IOError => error
+        end
+
+        assert error
+      end
+    end
+  end
+
+  describe 'Reading a Line' do
+    specify 'Expected' do
+      connection = Connection::Client::Substitute.build
+      connection.expect_read "foo\rbar\nbaz"
+
+      lines = []
+      lines << connection.readline("\r")
+      lines << connection.readline
+      lines << connection.readline
+
+      assert lines == ["foo\r", "bar\n", "baz"]
+    end
+
+    describe 'Unexpected' do
+      specify 'Nothing Programmed' do
+        connection = Connection::Client::Substitute.build
+
+        begin
+          connection.readline
+        rescue IOError => error
+        end
+
+        assert error
+      end
+
+      specify 'Write is Programmed' do
+        connection = Connection::Client::Substitute.build
+        connection.expect_write 'some-text'
+
+        begin
+          connection.readline
+        rescue IOError => error
+        end
+
+        assert error
+      end
+    end
+  end
+
+  describe 'Writing' do
+    describe 'Expected' do
+      specify 'In Full' do
+        connection = Connection::Client::Substitute.build
+        connection.expect_write 'some-text'
+
+        connection.write 'some-text'
+
+        assert connection.current_expectation.is_a?(Connection::Client::Substitute::Expectation::None)
+      end
+
+      specify 'Partial' do
+        connection = Connection::Client::Substitute.build
+        connection.expect_write 'some-text'
+
+        connection.write 'some'
+
+        refute connection.current_expectation.is_a?(Connection::Client::Substitute::Expectation::None)
+      end
+    end
+
+    describe 'Unexpected' do
+      specify 'Nothing Programmed' do
+        connection = Connection::Client::Substitute.build
+
+        begin
+          connection.write 'some-text'
+        rescue IOError => error
+        end
+
+        assert error
+      end
+
+      specify 'Different Text is Programmed' do
+        connection = Connection::Client::Substitute.build
+        connection.expect_write 'some-text'
+
+        begin
+          connection.write 'some-other-text'
+        rescue IOError => error
+        end
+
+        assert error
+      end
+
+      specify 'Read is Programmed' do
+        connection = Connection::Client::Substitute.build
+        connection.expect_read 'some-text'
+
+        begin
+          connection.write 'some-text'
+        rescue IOError => error
+        end
+
+        assert error
+      end
+    end
+  end
+
+  specify 'Sequence' do
   end
 end

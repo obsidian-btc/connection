@@ -5,41 +5,119 @@ module Connection
         new
       end
 
-      def dialogs
-        @dialogs ||= []
-      end
-
-      def program(request, response)
-        dialogs << [request, response]
-      end
-
-      def read
-        if dialogs.empty?
-          return "HTTP/1.1 501 Not Implemented\r\n"
-        end
-
-        expected_request, response = dialogs.shift
-
-        if expected_request == request
-          response
-        else
-          raise RequestMismatch
+      def current_expectation
+        expectations.fetch 0 do
+          Expectation::None.instance
         end
       end
 
-      def request
-        request_io.string
+      def expect_read(data)
+        expectation = Expectation::Read.build data
+        expectations << expectation
       end
 
-      def request_io
-        @request_io ||= StringIO.new
+      def expect_write(data)
+        expectation = Expectation::Write.build data
+        expectations << expectation
+      end
+
+      def expectations
+        @expectations ||= []
+      end
+
+      def read(*arguments)
+        output = current_expectation.read *arguments
+        expectations.shift if current_expectation.eof?
+        output
+      end
+
+      def readline(*arguments)
+        output = current_expectation.readline *arguments
+        expectations.shift if current_expectation.eof?
+        output
       end
 
       def write(*arguments)
-        request_io.write *arguments
+        output = current_expectation.write *arguments
+        current_expectation.check!
+        expectations.shift if current_expectation.finished?
+        output
       end
 
-      RequestMismatch = Class.new StandardError
+      Expectation = Struct.new :data do
+        dependency :logger, Telemetry::Logger
+
+        def self.build(data=nil)
+          instance = new data
+          ::Telemetry::Logger.configure instance
+          instance
+        end
+
+        def eof?
+          io.eof?
+        end
+
+        def io
+          @io ||= build_io
+        end
+
+        def read(*arguments)
+          io.read *arguments
+        end
+
+        def readline(*arguments)
+          io.readline *arguments
+        end
+
+        def write(data)
+          io.write data
+        end
+      end
+
+      class Expectation::None < Expectation
+        def self.instance
+          @instance ||= build
+        end
+
+        def build_io
+          io = StringIO.new
+          io.close_read
+          io.close_write
+          io
+        end
+      end
+
+      class Expectation::Read < Expectation
+        def build_io
+          io = StringIO.new data
+          io.close_write
+          io
+        end
+      end
+
+      class Expectation::Write < Expectation
+        def build_io
+          io = StringIO.new
+          io.close_read
+          io
+        end
+
+        def check!
+          unless data.start_with? io.string
+            logger.fail 'Did not write the expected data; expected:'
+            logger.fail data
+            logger.fail 'Actual:'
+            logger.fail io.string
+            logger.fail ''
+
+            raise IOError
+          end
+        end
+
+        def finished?
+          io.string == data
+        end
+      end
     end
   end
 end
