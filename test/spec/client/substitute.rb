@@ -146,6 +146,13 @@ describe 'Client Substitute' do
     end
   end
 
-  specify 'Sequence' do
+  specify 'Closing' do
+    connection = Connection::Client::Substitute.build
+
+    refute connection.closed?
+
+    connection.close
+
+    assert connection.closed?
   end
 end

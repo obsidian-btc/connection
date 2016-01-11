@@ -1,8 +1,22 @@
 module Connection
   class Client
     class Substitute
+      attr_writer :closed
+
       def self.build
         new
+      end
+
+      def close
+        self.closed = true
+      end
+
+      def closed
+        @closed ||= false
+      end
+
+      def closed?
+        if closed then true else false end
       end
 
       def current_expectation
