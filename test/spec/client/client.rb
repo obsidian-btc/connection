@@ -157,7 +157,7 @@ describe 'Client Connection' do
       io.close
 
       begin
-        client.close
+        client.read
       rescue IOError => error
       end
 
