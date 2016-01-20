@@ -1,6 +1,15 @@
 require_relative './scheduler_spec_init'
 
 describe 'Blocking Scheduling' do
+  def spawn_thread(&block)
+    thread = Thread.new do
+      Thread.current.abort_on_exception = true
+      block.()
+    end
+    Thread.pass until thread.status == 'sleep' || !thread.alive?
+    thread
+  end
+
   describe 'Waiting Until File is Readable' do
     scheduler = Connection::Scheduler::Blocking.new 1
 
@@ -39,14 +48,5 @@ describe 'Blocking Scheduling' do
 
       assert output == 'some-message'
     end
-  end
-
-  def spawn_thread(&block)
-    thread = Thread.new do
-      Thread.current.abort_on_exception = true
-      block.()
-    end
-    Thread.pass until thread.status == 'sleep' || !thread.alive?
-    thread
   end
 end

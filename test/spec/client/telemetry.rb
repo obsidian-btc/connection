@@ -11,7 +11,7 @@ describe 'Client Telemetry' do
     telemetry.read 'some-message'
 
     __logger.data telemetry.pretty_print
-    assert_equal <<-TELEMETRY.chomp, telemetry.pretty_print
+    assert <<-TELEMETRY.chomp == telemetry.pretty_print
 [
   {
     "operation": "read",
@@ -30,7 +30,7 @@ describe 'Client Telemetry' do
     telemetry.wrote 'some-message', 4
 
     __logger.data telemetry.pretty_print
-    assert_equal <<-TELEMETRY.chomp, telemetry.pretty_print
+    assert <<-TELEMETRY.chomp == telemetry.pretty_print
 [
   {
     "operation": "wrote",

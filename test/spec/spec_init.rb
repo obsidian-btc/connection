@@ -1,4 +1,4 @@
 require_relative '../test_init'
 
-require 'minitest/autorun'
+require 'minitest'
 require 'minitest-spec-context'
