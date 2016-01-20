@@ -53,7 +53,7 @@ module Connection
 
       def write(*arguments)
         output = current_expectation.write *arguments
-        current_expectation.check!
+        current_expectation.verify_written
         expectations.shift if current_expectation.finished?
         output
       end
@@ -116,7 +116,7 @@ module Connection
           io
         end
 
-        def check!
+        def verify_written
           unless data.start_with? io.string
             logger.fail 'Did not write the expected data; expected:'
             logger.fail data
