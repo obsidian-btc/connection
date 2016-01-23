@@ -1,9 +1,9 @@
 module Connection
   class Client
     class EstablishConnection
-      dependency :logger, Telemetry::Logger
+      dependency :logger, ::Telemetry::Logger
 
-      def self.build(host, port, ssl_context=nil)
+      def self.build(host, port, ssl_context: nil)
         if ssl_context
           SSL.build host, port, ssl_context
         else
@@ -22,40 +22,40 @@ module Connection
           @ssl_context = ssl_context
         end
 
-        def self.build(host, port, ssl_context)
+        def self.build(host, port, ssl_context, scheduler: nil)
           instance = new host, port, ssl_context
-          Telemetry::Logger.configure instance
+          ::Telemetry::Logger.configure instance
           instance
         end
 
-        def call
+        def call(scheduler)
           logger.trace "Establishing encrypted connection (Host: #{host.inspect}, Port: #{port})"
 
           raw_socket = TCPSocket.new host, port
           ssl_socket = OpenSSL::SSL::SSLSocket.new raw_socket, ssl_context
-          handshake
+          handshake ssl_socket, scheduler
 
           logger.debug "Established encrypted connection (Host: #{host.inspect}, Port: #{port})"
 
           ssl_socket
         end
 
-        def handshake
-          logger.trace "Connecting (Fileno: #{fileno})"
+        def handshake(ssl_socket, scheduler)
+          raw_io = ssl_socket.to_io
 
-          Operation.read to_io, scheduler do
-            io.connect_nonblock
+          logger.trace "Connecting (Fileno: #{raw_io.fileno})"
+
+          Operation.read raw_io, scheduler do
+            ssl_socket.connect_nonblock
           end
 
-          logger.debug "Connected (Fileno: #{fileno})"
+          logger.debug "Connected (Fileno: #{raw_io.fileno})"
         end
       end
 
       class NonSSL < EstablishConnection
         attr_reader :host
         attr_reader :port
-
-        dependency :logger, Telemetry::Logger
 
         def initialize(host, port)
           @host = host
@@ -68,7 +68,7 @@ module Connection
           instance
         end
 
-        def call
+        def call(_)
           logger.trace "Establishing connection (Host: #{host.inspect}, Port: #{port})"
 
           socket = TCPSocket.new host, port

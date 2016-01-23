@@ -1,6 +1,10 @@
 module Connection
   def self.client(host, port, scheduler: nil, ssl_context: nil)
-    establish_connection = Client::EstablishConnection.build host, port, ssl_context
+    establish_connection = Client::EstablishConnection.build(
+      host,
+      port,
+      ssl_context: ssl_context
+    )
     Client.build establish_connection, scheduler
   end
 

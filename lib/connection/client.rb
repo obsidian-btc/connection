@@ -23,21 +23,25 @@ module Connection
       raise error
     end
 
+    def connect
+      establish_connection.(scheduler)
+    end
+
     def default_max_read_size
       8192
     end
 
     def io
-      @io ||= establish_connection.()
+      @io ||= connect
     end
 
     def readline(*arguments)
-      readline_command.(*arguments)
+      readline_command.(io, *arguments)
     end
     alias_method :gets, :readline
 
     def readline_command
-      @readline_command ||= Readline.build io, scheduler
+      @readline_command ||= Readline.build scheduler
     end
 
     def read(bytes=nil, outbuf=nil)

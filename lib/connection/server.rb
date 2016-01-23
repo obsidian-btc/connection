@@ -31,7 +31,7 @@ module Connection
     def build_client(socket, cls=nil)
       cls ||= Client
 
-      establish_connection = -> { socket }
+      establish_connection = ->(_) { socket }
 
       client = cls.build establish_connection, scheduler
       client.telemetry.add_observer stats

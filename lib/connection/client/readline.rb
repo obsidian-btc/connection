@@ -1,25 +1,21 @@
 module Connection
   class Client
     class Readline
-      attr_reader :io
       attr_reader :scheduler
 
       dependency :logger, ::Telemetry::Logger
 
-      def initialize(io, scheduler)
-        @io = io
+      def initialize(scheduler)
         @scheduler = scheduler
       end
 
-      def self.build(io, scheduler=nil)
-        scheduler ||= Scheduler::Blocking.build
-
-        instance = new io, scheduler
+      def self.build(scheduler=nil)
+        instance = new scheduler
         ::Telemetry::Logger.configure instance
         instance
       end
 
-      def call(*arguments)
+      def call(io, *arguments)
         Operation.read io, scheduler do |operation, attempt|
           char = io.read_nonblock 1
           io.ungetc char
