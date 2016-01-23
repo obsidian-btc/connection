@@ -13,10 +13,6 @@ module Connection
     end
   end
 
-  def self.ssl_context
-    fail 'Construct default SSL context (perhaps with settings that point to cert/key)'
-  end
-
   def self.server(port, scheduler: nil, ssl_context: nil)
     tcp_server = TCPServer.new '0.0.0.0', port
 
