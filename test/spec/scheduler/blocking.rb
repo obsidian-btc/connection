@@ -14,16 +14,17 @@ describe 'Blocking Scheduling' do
     scheduler = Connection::Scheduler::Blocking.new 1
 
     specify 'Returns After File is Readable' do
-      read_io, write_io = Connection::Controls::IO.blocked_read_pair
       output = nil
 
-      spawn_thread do
-        scheduler.wait_readable read_io
-        output = read_io.read_nonblock 12
-      end
+      Connection::Controls::IO.blocked_read_pair do |read_io, write_io|
+        spawn_thread do
+          scheduler.wait_readable read_io
+          output = read_io.read_nonblock 12
+        end
 
-      write_io.write 'some-message'
-      Thread.pass until output
+        write_io.write 'some-message'
+        Thread.pass until output
+      end
 
       assert output == 'some-message'
     end
@@ -33,18 +34,23 @@ describe 'Blocking Scheduling' do
     scheduler = Connection::Scheduler::Blocking.new 1
 
     specify 'Returns After File is Writable' do
-      read_io, write_io, bytes_in_write_buffer =
-        Connection::Controls::IO.blocked_write_pair
+      output = nil
 
-      thread = spawn_thread do
-        scheduler.wait_writable write_io
-        write_io.write 'some-message'
+      Connection::Controls::IO.blocked_write_pair do |read_io, write_io, bytes_in_write_buffer|
+        thread = spawn_thread do
+          scheduler.wait_writable write_io
+          write_io.write 'some-message'
+        end
+
+        bytes_left = bytes_in_write_buffer
+        until bytes_left.zero?
+          data = read_io.read_nonblock(bytes_left)
+          bytes_left -= data.bytesize
+        end
+        Thread.pass while thread.alive?
+
+        output = read_io.read_nonblock 12
       end
-
-      read_io.read_nonblock bytes_in_write_buffer
-      Thread.pass while thread.alive?
-
-      output = read_io.read_nonblock 12
 
       assert output == 'some-message'
     end

@@ -3,14 +3,17 @@ require_relative './scheduler_spec_init'
 describe 'Immediate Scheduling' do
   describe 'Waiting Until File is Readable' do
     specify 'Returns Immediately' do
-      io, * = Connection::Controls::IO.blocked_read_pair
-      scheduler = Connection::Scheduler::Immediate.new
+      error = nil
 
-      scheduler.wait_readable io
+      Connection::Controls::IO.blocked_read_pair do |io, _|
+        scheduler = Connection::Scheduler::Immediate.new
 
-      begin
-        io.read_nonblock 1
-      rescue IO::EAGAINWaitReadable => error
+        scheduler.wait_readable io
+
+        begin
+          io.read_nonblock 1
+        rescue IO::EAGAINWaitReadable => error
+        end
       end
 
       assert error
@@ -19,14 +22,19 @@ describe 'Immediate Scheduling' do
 
   describe 'Waiting Until File is Writable' do
     specify 'Returns Immediately' do
-      *, io, _ = Connection::Controls::IO.blocked_write_pair
-      scheduler = Connection::Scheduler::Immediate.new
+      error = nil
 
-      scheduler.wait_writable io
+      Connection::Controls::IO.blocked_write_pair do |_, io, _|
+        scheduler = Connection::Scheduler::Immediate.new
 
-      begin
-        io.write_nonblock '.'
-      rescue IO::EAGAINWaitReadable => error
+        scheduler.wait_writable io
+
+        begin
+          loop do
+            io.write_nonblock '.'
+          end
+        rescue IO::EAGAINWaitReadable => error
+        end
       end
 
       assert error
