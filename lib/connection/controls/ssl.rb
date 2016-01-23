@@ -28,7 +28,10 @@ module Connection
 
         client_socket = TCPSocket.new '127.0.0.1', port
         ssl_socket = OpenSSL::SSL::SSLSocket.new client_socket, client_context
-        client = Connection::Client::SSL.build ssl_socket
+
+        establish_connection = -> { ssl_socket }
+
+        client = Connection::Client::SSL.build establish_connection
 
         begin
           block.(server, client)

@@ -2,14 +2,14 @@ module Connection
   class Client
     include Connection
 
-    attr_reader :io
+    attr_reader :establish_connection
 
-    def initialize(io)
-      @io = io
+    def initialize(establish_connection)
+      @establish_connection = establish_connection
     end
 
-    def self.build(io, scheduler=nil)
-      instance = new io
+    def self.build(establish_connection, scheduler=nil)
+      instance = new establish_connection
       instance.configure_dependencies scheduler: scheduler
       instance
     end
@@ -25,6 +25,10 @@ module Connection
 
     def default_max_read_size
       8192
+    end
+
+    def io
+      @io ||= establish_connection.()
     end
 
     def readline(*arguments)

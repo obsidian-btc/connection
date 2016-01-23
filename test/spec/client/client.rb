@@ -4,7 +4,8 @@ describe 'Client Connection' do
   describe 'Reading' do
     specify 'A Single Line' do
       io = StringIO.new "some-line\nother-line\n"
-      client = Connection::Client.new io
+      establish_connection = -> { io }
+      client = Connection::Client.new establish_connection
 
       data = client.readline
 
@@ -14,38 +15,42 @@ describe 'Client Connection' do
     describe 'Data' do
       specify 'Without Arguments' do
         io = StringIO.new 'some-message'
-        client = Connection::Client.new io
+        establish_connection = -> { io }
+        client = Connection::Client.new establish_connection
 
-        data = io.read
+        data = client.read
 
         assert data == 'some-message'
       end
 
       specify 'Fixed Length' do
         io = StringIO.new 'some-message'
-        client = Connection::Client.new io
+        establish_connection = -> { io }
+        client = Connection::Client.new establish_connection
 
-        data = io.read 4
+        data = client.read 4
 
         assert data == 'some'
       end
 
       specify 'Output Buffer' do
         io = StringIO.new 'some-message'
-        client = Connection::Client.new io
+        establish_connection = -> { io }
+        client = Connection::Client.new establish_connection
         outbuf = ''
 
-        io.read nil, outbuf
+        client.read nil, outbuf
 
         assert outbuf == 'some-message'
       end
 
       specify 'Output Buffer and Fixed Length' do
         io = StringIO.new 'some-message'
-        client = Connection::Client.new io
+        establish_connection = -> { io }
+        client = Connection::Client.new establish_connection
         outbuf = ''
 
-        io.read 4, outbuf
+        client.read 4, outbuf
 
         assert outbuf == 'some'
       end
@@ -56,7 +61,8 @@ describe 'Client Connection' do
         Connection::Controls::IO.tcp_pair do |io, remote|
           remote.close
 
-          client = Connection::Client.build io
+          establish_connection = -> { io }
+          client = Connection::Client.build establish_connection
           client.telemetry.start_recording
 
           begin
@@ -73,7 +79,8 @@ describe 'Client Connection' do
         Connection::Controls::IO.tcp_pair do |io, remote|
           Connection::Controls::IO.reset_connection remote
 
-          client = Connection::Client.build io
+          establish_connection = -> { io }
+          client = Connection::Client.build establish_connection
           client.telemetry.start_recording
 
           begin
@@ -91,7 +98,8 @@ describe 'Client Connection' do
   describe 'Writing' do
     specify 'Data' do
       io = StringIO.new
-      client = Connection::Client.new io
+      establish_connection = -> { io }
+      client = Connection::Client.new establish_connection
 
       bytes_written = client.write 'some-message'
 
@@ -103,7 +111,8 @@ describe 'Client Connection' do
       Connection::Controls::IO.tcp_pair 9988 do |io, remote|
         remote.close
 
-        client = Connection::Client.build io
+        establish_connection = -> { io }
+        client = Connection::Client.build establish_connection
         client.telemetry.start_recording
 
         begin
@@ -122,7 +131,8 @@ describe 'Client Connection' do
       Connection::Controls::IO.tcp_pair do |io, remote|
         Connection::Controls::IO.reset_connection remote
 
-        client = Connection::Client.build io
+        establish_connection = -> { io }
+        client = Connection::Client.build establish_connection
         client.telemetry.start_recording
 
         begin
@@ -139,7 +149,8 @@ describe 'Client Connection' do
   describe 'Closing' do
     specify 'Graceful' do
       io = StringIO.new
-      client = Connection::Client.build io
+      establish_connection = -> { io }
+      client = Connection::Client.build establish_connection
       client.telemetry.start_recording
 
       client.close
@@ -151,7 +162,8 @@ describe 'Client Connection' do
 
     specify 'Already Closed' do
       io = StringIO.new
-      client = Connection::Client.build io
+      establish_connection = -> { io }
+      client = Connection::Client.build establish_connection
       client.telemetry.start_recording
 
       io.close

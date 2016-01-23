@@ -5,11 +5,13 @@ module Connection
     if ssl_context
       socket = OpenSSL::SSL::SSLSocket.new socket, ssl_context
 
-      instance = Client::SSL.build socket, scheduler
+      establish_connection = -> { socket }
+      instance = Client::SSL.build establish_connection, scheduler
       instance.handshake
       instance
     else
-      Client.build socket, scheduler
+      establish_connection = -> { socket }
+      Client.build establish_connection, scheduler
     end
   end
 
