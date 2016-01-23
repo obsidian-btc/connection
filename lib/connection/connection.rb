@@ -1,18 +1,7 @@
 module Connection
   def self.client(host, port, scheduler: nil, ssl_context: nil)
-    socket = TCPSocket.new host, port
-
-    if ssl_context
-      socket = OpenSSL::SSL::SSLSocket.new socket, ssl_context
-
-      establish_connection = -> { socket }
-      instance = Client::SSL.build establish_connection, scheduler
-      instance.handshake
-      instance
-    else
-      establish_connection = -> { socket }
-      Client.build establish_connection, scheduler
-    end
+    establish_connection = Client::EstablishConnection.build host, port, ssl_context
+    Client.build establish_connection, scheduler
   end
 
   def self.server(port, scheduler: nil, ssl_context: nil)

@@ -9,6 +9,7 @@ module Connection
 
       server = Connection.server port
       remote = Connection.client '127.0.0.1', port
+      remote.io # Trigger connection
       local = server.accept
 
       remote.io.sync = true

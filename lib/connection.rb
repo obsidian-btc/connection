@@ -19,6 +19,7 @@ require 'connection/scheduler/immediate'
 require 'connection/scheduler'
 
 require 'connection/client'
+require 'connection/client/establish_connection'
 require 'connection/client/readline'
 require 'connection/client/ssl'
 require 'connection/client/substitute'
