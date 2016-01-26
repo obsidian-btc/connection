@@ -6,7 +6,7 @@ if [ -z ${LIBRARIES_DIR+x} ]; then
 fi
 
 if [ ! -d "$LIBRARIES_DIR" ]; then
-  echo "$LIBRARIES_DIR does not exist... exiting"
+  echo "$LIBRARIES_DIR does not exit... exiting"
   exit 1
 fi
 

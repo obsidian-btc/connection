@@ -1,33 +1,35 @@
-module Connection
-  module Scheduler
-    def self.configure(receiver)
-      instance = Blocking.build
-      receiver.scheduler = instance
-      instance
+class Connection
+  class Scheduler
+    dependency :logger, Telemetry::Logger
+
+    def wait_readable(io)
+      fileno = Fileno.get io
+
+      logger.opt_trace "Waiting for IO to become readable (Fileno: #{fileno})"
+
+      block_read io
+
+      logger.opt_debug "IO has become readable (Fileno: #{fileno})"
     end
 
-    class Substitute < Immediate
-      attr_accessor :context_switches
+    def wait_writable(io)
+      fileno = Fileno.get io
 
-      def initialize
-        @context_switches = 0
-      end
+      logger.opt_trace "Waiting for IO to become writable (Fileno: #{fileno})"
 
-      def self.build
-        Substitute.new
-      end
+      block_write io
 
-      def context_switched?
-        context_switches > 0
-      end
+      logger.opt_debug "IO has become writable (Fileno: #{fileno})"
+    end
 
-      def wait_readable(io)
-        self.context_switches += 1
-      end
+    def configure_dependencies
+      Telemetry::Logger.configure self
+    end
 
-      def wait_writable(io)
-        self.context_switches += 1
-      end
+    def self.configure(receiver)
+      scheduler = Blocking.build
+
+      receiver.scheduler = scheduler
     end
   end
 end

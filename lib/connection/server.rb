@@ -1,45 +1,99 @@
-module Connection
+class Connection
   class Server
-    include Connection
+    attr_reader :socket
 
-    attr_reader :io
+    dependency :logger, Telemetry::Logger
+    dependency :scheduler, Scheduler
 
-    def initialize(io)
-      @io = io
+    def initialize(socket)
+      @socket = socket
     end
 
-    def self.build(tcp_server, scheduler=nil)
-      instance = new tcp_server
-      instance.configure_dependencies scheduler: scheduler
+    def self.build(port, bind_address: nil, scheduler: nil, ssl_context: nil)
+      bind_address ||= Defaults::BindAddress.get
+
+      if ssl_context
+        socket = bind bind_address, port
+        ssl_socket = OpenSSL::SSL::SSLServer.new socket, ssl_context
+        instance = SSL.new ssl_socket, ssl_context
+      else
+        socket = bind bind_address, port
+        instance = new socket
+      end
+
+      Telemetry::Logger.configure instance
+
+      if scheduler
+        instance.scheduler = scheduler
+      else
+        Scheduler.configure instance
+      end
+
       instance
     end
 
-    def accept
-      logger.trace "Accepting Connection (Server Fileno: #{fileno})"
+    def self.bind(bind_address, port)
+      TCPServer.new bind_address, port
+    end
 
-      socket = Operation.read to_io, scheduler do
-        io.accept_nonblock
+    def accept
+      logger.opt_trace "Accepting connection (Fileno: #{fileno})"
+
+      begin
+        client_socket = io.accept_nonblock
+      rescue IO::WaitReadable
+        logger.opt_debug "No connections available (Fileno: #{fileno})"
+
+        logger.opt_trace "Waiting for connection (Fileno: #{fileno})"
+        scheduler.wait_readable io
+        logger.opt_debug "Incoming connection arrived (Fileno: #{fileno})"
+
+        retry
       end
 
-      stats.connection_opened
+      logger.opt_debug "Accepted connection (Fileno: #{fileno}, Client Fileno: #{Fileno.get client_socket})"
 
-      logger.debug "Accepted Connection (Client Fileno: #{socket.fileno}, Server Fileno: #{fileno})"
-
-      build_client socket
+      build_connection client_socket
     end
 
-    def build_client(socket, cls=nil)
-      cls ||= Client
-
-      establish_connection = ->(_) { socket }
-
-      client = cls.build establish_connection, scheduler
-      client.telemetry.add_observer stats
-      client
+    def accept_socket
+      socket.accept_nonblock
     end
 
-    def stats
-      @stats ||= Stats.new
+    def build_connection(client_socket)
+      Connection.build client_socket, scheduler
+    end
+
+    def close
+      socket.close
+    end
+
+    def closed?
+      socket.closed?
+    end
+
+    def establish_connection
+      TCPServer.new bind_address, port
+    end
+
+    def fileno
+      Fileno.get socket
+    end
+
+    def io
+      socket
+    end
+
+    def socket
+      @socket ||= establish_connection
+    end
+
+    module Defaults
+      module BindAddress
+        def self.get
+          '127.0.0.1'
+        end
+      end
     end
   end
 end

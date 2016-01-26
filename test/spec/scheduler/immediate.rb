@@ -1,43 +1,25 @@
 require_relative './scheduler_spec_init'
 
-describe 'Immediate Scheduling' do
-  describe 'Waiting Until File is Readable' do
-    specify 'Returns Immediately' do
-      error = nil
+context 'Immediate Scheduler' do
+  scheduler = Connection::Scheduler::Immediate.new
 
-      Connection::Controls::IO.blocked_read_pair do |io, _|
-        scheduler = Connection::Scheduler::Immediate.new
+  test 'Scheduling a read' do
+    Connection::Controls::IO::Scenarios::ReadsWillBlock.activate do |io, _|
+      scheduler.wait_readable io
 
-        scheduler.wait_readable io
-
-        begin
-          io.read_nonblock 1
-        rescue IO::EAGAINWaitReadable => error
-        end
+      assert io, Connection::Controls::UNIXSocket::Assertions do
+        read_would_block?
       end
-
-      assert error
     end
   end
 
-  describe 'Waiting Until File is Writable' do
-    specify 'Returns Immediately' do
-      error = nil
+  test 'Scheduling a write' do
+    Connection::Controls::IO::Scenarios::WritesWillBlock.activate do |_, io|
+      scheduler.wait_writable io
 
-      Connection::Controls::IO.blocked_write_pair do |_, io, _|
-        scheduler = Connection::Scheduler::Immediate.new
-
-        scheduler.wait_writable io
-
-        begin
-          loop do
-            io.write_nonblock '.'
-          end
-        rescue IO::EAGAINWaitReadable => error
-        end
+      assert io, Connection::Controls::UNIXSocket::Assertions do
+        write_would_block?
       end
-
-      assert error
     end
   end
 end

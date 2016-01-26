@@ -1,14 +1,16 @@
-module Connection
-  module Scheduler
-    class Immediate
-      def self.instance
-        @instance ||= new
+class Connection
+  class Scheduler
+    class Immediate < Scheduler
+      def self.build
+        instance = new
+        instance.configure_dependencies
+        instance
       end
 
-      def wait_readable(io)
+      def block_read(io)
       end
 
-      def wait_writable(io)
+      def block_write(io)
       end
     end
   end

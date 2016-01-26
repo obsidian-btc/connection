@@ -1,68 +1,59 @@
-module Connection
+class Connection
   module Controls
     module SSL
-      extend self
+      module Context
+        def self.example(cert: nil, key: nil, verify_mode: nil)
+          verify_mode ||= OpenSSL::SSL::VERIFY_NONE
 
-      def client_context
-        context
-      end
+          ssl_context = OpenSSL::SSL::SSLContext.new
+          ssl_context.set_params verify_mode: verify_mode
+          ssl_context.cert = cert if cert
+          ssl_context.key = key if key
+          ssl_context
+        end
 
-      def context(cert: nil, key: nil)
-        ssl_context = OpenSSL::SSL::SSLContext.new
-        ssl_context.set_params verify_mode: OpenSSL::SSL::VERIFY_NONE
-        ssl_context.cert = cert if cert
-        ssl_context.key = key if key
-        ssl_context
-      end
+        module Client
+          def self.example
+            Context.example
+          end
+        end
 
-      def context_pair
-        return client_context, server_context
-      end
-
-      def pair(port=nil, &block)
-        port ||= 2001
-
-        client_context, server_context = context_pair
-
-        server = Connection.server port, ssl_context: server_context
-
-        client_socket = TCPSocket.new '127.0.0.1', port
-        ssl_socket = OpenSSL::SSL::SSLSocket.new client_socket, client_context
-
-        establish_connection = ->(_) { ssl_socket }
-
-        client = Connection::Client::SSL.build establish_connection
-
-        begin
-          block.(server, client)
-
-        ensure
-          server.close unless server.closed?
-          client.close unless client.closed?
+        module Server
+          def self.example
+            key = Key.example
+            cert = Certificate::SelfSigned.example key
+            Context.example cert: cert, key: key
+          end
         end
       end
 
-      def self_signed_cert
-        name = OpenSSL::X509::Name.parse 'CN=nobody/DC=example'
-        key = OpenSSL::PKey::RSA.new 2048
-
-        cert = OpenSSL::X509::Certificate.new
-        cert.version = 2
-        cert.serial = 0
-        cert.not_before = Time.now
-        cert.not_after = Time.now + 3600
-
-        cert.public_key = key.public_key
-        cert.subject = name
-        cert.issuer = name
-        cert.sign key, OpenSSL::Digest::SHA1.new
-
-        return cert, key
+      module Key
+        def self.example
+          OpenSSL::PKey::RSA.new 2048
+        end
       end
 
-      def server_context
-        cert, key = self_signed_cert
-        context cert: cert, key: key
+      module Certificate
+        module SelfSigned
+          def self.example(key=nil)
+            key ||= Key.example
+
+            name = OpenSSL::X509::Name.parse 'CN=nobody/DC=example'
+
+            cert = OpenSSL::X509::Certificate.new
+            cert.version = 2
+            cert.serial = 0
+            cert.not_before = Time.now
+            cert.not_after = Time.now + 3600
+
+            cert.public_key = key.public_key
+            cert.subject = name
+            cert.issuer = name
+            cert.sign key, OpenSSL::Digest::SHA1.new
+
+            cert
+          end
+        end
       end
     end
   end

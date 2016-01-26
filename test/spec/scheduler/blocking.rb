@@ -1,58 +1,39 @@
 require_relative './scheduler_spec_init'
 
-describe 'Blocking Scheduling' do
-  def spawn_thread(&block)
-    thread = Thread.new do
-      Thread.current.abort_on_exception = true
-      block.()
-    end
-    Thread.pass until thread.status == 'sleep' || !thread.alive?
-    thread
-  end
+context 'Blocking Scheduler' do
+  timeout = Connection::Controls::IO::Timeout.short
+  octet = Connection::Controls::IO::Octet.example
+  write_buffer_window_size = Connection::Controls::IO::Scenarios::WritesWillBlock.write_buffer_window_size
 
-  describe 'Waiting Until File is Readable' do
-    scheduler = Connection::Scheduler::Blocking.new 1
+  scheduler = Connection::Scheduler::Blocking.build timeout
 
-    specify 'Returns After File is Readable' do
-      output = nil
-
-      Connection::Controls::IO.blocked_read_pair do |read_io, write_io|
-        spawn_thread do
-          scheduler.wait_readable read_io
-          output = read_io.read_nonblock 12
-        end
-
-        write_io.write 'some-message'
-        Thread.pass until output
+  test 'Scheduling a read' do
+    Connection::Controls::IO::Scenarios::ReadsWillBlock.activate do |read_io, write_io|
+      thread = Connection::Controls::IO::Scenarios::DeferViaThread.(timeout * 2) do
+        write_io.write octet
       end
 
-      assert output == 'some-message'
+      scheduler.wait_readable read_io
+
+      assert read_io, Connection::Controls::UNIXSocket::Assertions do
+        !read_would_block?
+      end
+
+      thread.join
     end
   end
 
-  describe 'Waiting Until File is Writable' do
-    scheduler = Connection::Scheduler::Blocking.new 1
-
-    specify 'Returns After File is Writable' do
-      output = nil
-
-      Connection::Controls::IO.blocked_write_pair do |read_io, write_io, bytes_in_write_buffer|
-        thread = spawn_thread do
-          scheduler.wait_writable write_io
-          write_io.write 'some-message'
-        end
-
-        bytes_left = bytes_in_write_buffer
-        until bytes_left.zero?
-          data = read_io.read_nonblock(bytes_left)
-          bytes_left -= data.bytesize
-        end
-        Thread.pass while thread.alive?
-
-        output = read_io.read_nonblock 12
+  test 'Scheduling a write' do
+    Connection::Controls::IO::Scenarios::WritesWillBlock.activate do |read_io, write_io|
+      thread = Connection::Controls::IO::Scenarios::DeferViaThread.(timeout * 2) do
+         read_io.read write_buffer_window_size
       end
 
-      assert output == 'some-message'
+      scheduler.wait_writable write_io
+
+      assert write_io, Connection::Controls::UNIXSocket::Assertions do
+        !write_would_block?
+      end
     end
   end
 end

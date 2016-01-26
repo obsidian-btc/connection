@@ -1,46 +1,36 @@
-module Connection
-  module Scheduler
-    class Blocking
-      attr_reader :poll_interval_ms
+class Connection
+  class Scheduler
+    class Blocking < Scheduler
+      attr_reader :timeout
 
-      dependency :logger, ::Telemetry::Logger
-
-      def initialize(poll_interval_ms)
-        @poll_interval_ms = poll_interval_ms
+      def initialize(timeout)
+        @timeout = timeout
       end
 
-      def self.build
-        instance = new 5_000
-        ::Telemetry::Logger.configure instance
+      def self.build(timeout=nil)
+        timeout ||= default_timeout
+
+        instance = new timeout
+        instance.configure_dependencies
         instance
       end
 
-      def self.configure(receiver)
-        receiver.scheduler = instance
-      end
-
-      def self.instance
-        @instance ||= build
-      end
-
-      def poll_interval
-        @poll_interval ||= Rational(poll_interval_ms, 1000)
-      end
-
-      def wait_readable(io)
-        return if io.is_a? StringIO
+      def block_read(io)
         loop do
-          ready_io, * = IO.select [io], [], [], poll_interval
-          break if ready_io
+          readable_ios, _, _ = IO.select [io], [], [], timeout
+          break if readable_ios == [io]
         end
       end
 
-      def wait_writable(io, &block)
-        return if io.is_a? StringIO
+      def block_write(io)
         loop do
-          ready_io, * = IO.select [], [io], [], poll_interval
-          break if ready_io
+          _, writable_ios, _ = IO.select [], [io], [], timeout
+          break if writable_ios == [io]
         end
+      end
+
+      def self.default_timeout
+        10
       end
     end
   end

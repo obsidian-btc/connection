@@ -1,97 +1,134 @@
-module Connection
+class Connection
   class Client
-    include Connection
+    attr_reader :host
+    attr_reader :port
+    attr_reader :reconnect_policy
+    attr_reader :scheduler
+    attr_writer :socket
 
-    attr_reader :establish_connection
+    dependency :logger, Telemetry::Logger
+    dependency :scheduler, Scheduler
 
-    def initialize(establish_connection)
-      @establish_connection = establish_connection
+    def initialize(host, port, reconnect_policy)
+      @host = host
+      @port = port
+      @reconnect_policy = reconnect_policy
     end
 
-    def self.build(establish_connection, scheduler=nil)
-      instance = new establish_connection
-      instance.configure_dependencies scheduler: scheduler
+    def self.build(host, port, reconnect: nil, scheduler: nil, ssl: nil)
+      reconnect ||= :never
+      reconnect_policy = ReconnectPolicy.get reconnect
+
+      scheduler ||= Scheduler::Blocking.build
+
+      if ssl
+        instance = SSL.new host, port, reconnect_policy
+        instance.ssl_context = ssl if ssl.is_a? OpenSSL::SSL::SSLContext
+        instance.ssl_context.verify_mode
+      else
+        instance = NonSSL.new host, port, reconnect_policy
+      end
+
+      if scheduler
+        instance.scheduler = scheduler
+      else
+        Scheduler.configure instance
+      end
+
+      Telemetry::Logger.configure instance
       instance
     end
 
+    def build_connection
+      logger.opt_trace "Establishing connection (Host: #{host.inspect}, Port: #{port})"
+
+      socket = establish_connection
+
+      logger.opt_debug "Established connection (Host: #{host.inspect}, Port: #{port}, Fileno: #{Fileno.get socket})"
+
+      Connection.build socket, scheduler
+    end
+
     def close
-      io.close
-      telemetry.closed
+      logger.opt_trace "Closing socket (Host: #{host.inspect}, Port: #{port}, Fileno: #{fileno})"
 
-    rescue IOError => error
-      telemetry.closed
-      raise error
+      socket.close
+
+      logger.opt_debug "Closed socket (Host: #{host.inspect}, Port: #{port})"
     end
 
-    def connect
-      establish_connection.(scheduler)
+    def closed?
+      socket.closed?
     end
 
-    def default_max_read_size
-      8192
+    def connected(&block)
+      if socket
+        reconnect_policy.control_connection self
+      end
+
+      block.(socket)
+    end
+
+    def gets(*arguments)
+      connected do
+        socket.gets *arguments
+      end
+    end
+
+    def establish_connection
+      fail
+    end
+
+    def fileno
+      socket.fileno
     end
 
     def io
-      @io ||= connect
+      socket.io
+    end
+
+    def read(*arguments)
+      connected do
+        socket.read *arguments
+      end
     end
 
     def readline(*arguments)
-      readline_command.(io, *arguments)
-    end
-    alias_method :gets, :readline
-
-    def readline_command
-      @readline_command ||= Readline.build scheduler
+      connected do
+        socket.readline *arguments
+      end
     end
 
-    def read(bytes=nil, outbuf=nil)
-      bytes ||= default_max_read_size
+    def reconnect
+      self.socket = nil
+    end
 
-      logger.trace "Reading (Bytes Requested: #{bytes}, Fileno: #{fileno.inspect})"
+    def socket
+      @socket ||= build_connection
+    end
 
-      data = Operation.read to_io, scheduler do
-        io.read_nonblock bytes, outbuf
+    def write(*arguments)
+      connected do
+        socket.write *arguments
+      end
+    end
+
+    module Assertions
+      def reconnects_after_close?
+        close
+
+        reconnected = connected do
+          !socket.closed?
+        end
+
+        close
+
+        reconnected
       end
 
-      logger.debug "Read (Size: #{data.bytesize}, Bytes Requested: #{bytes}, Fileno: #{fileno.inspect})"
-      logger.data data
-
-      telemetry.read data
-
-      data
-
-    rescue IOError => error
-      telemetry.closed
-      raise error
-
-    rescue Errno::ECONNRESET => error
-      telemetry.connection_reset
-      raise error
-    end
-
-    def telemetry
-      @telemetry ||= Telemetry.build
-    end
-
-    def write(data)
-      data = String(data)
-
-      logger.trace "Writing (Size: #{data.bytesize}, Fileno: #{fileno.inspect})"
-      logger.data data
-
-      bytes_written = Operation.write to_io, scheduler do
-        io.write_nonblock data
+      def scheduler_configured?(expected_scheduler)
+        socket.scheduler == expected_scheduler
       end
-
-      logger.debug "Wrote (Size: #{bytes_written}, Fileno: #{fileno.inspect})"
-
-      telemetry.wrote data, bytes_written
-
-      bytes_written
-
-    rescue Errno::EPIPE => error
-      telemetry.broken_pipe
-      raise error
     end
   end
 end

@@ -1,32 +1,28 @@
-require 'json'
+require 'English'
 require 'fiber'
-require 'socket'
-require 'observer'
 require 'openssl'
+require 'socket'
+require 'stringio'
 
-require 'clock'
-require 'dependency'; Dependency.activate
 require 'telemetry/logger'
 
-require 'connection/error'
-require 'connection/connection'
-require 'connection/io_proxy'
+require 'connection/fileno'
 
-require 'connection/scheduler/blocking'
-require 'connection/scheduler/cooperative/fiber_substitute'
-require 'connection/scheduler/cooperative'
-require 'connection/scheduler/immediate'
 require 'connection/scheduler'
+require 'connection/scheduler/blocking'
+require 'connection/scheduler/immediate'
+require 'connection/scheduler/substitute'
+
+require 'connection/connection'
+require 'connection/substitute'
+require 'connection/substitute/assertions'
+require 'connection/substitute/expectation'
 
 require 'connection/client'
-require 'connection/client/establish_connection'
-require 'connection/client/readline'
+require 'connection/client/non_ssl'
+require 'connection/client/reconnect_policy'
 require 'connection/client/ssl'
 require 'connection/client/substitute'
-require 'connection/client/telemetry'
 
 require 'connection/server'
 require 'connection/server/ssl'
-require 'connection/server/stats'
-
-require 'connection/operation'
