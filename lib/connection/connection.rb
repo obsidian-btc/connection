@@ -74,7 +74,7 @@ class Connection
       logger.opt_debug "Read line (Separator: #{separator_or_limit.inspect}, Bytes Requested: #{limit.inspect}, Fileno: #{fileno}, Bytes: #{line.bytesize})"
       logger.opt_data line
     else
-      logger.opt_debug "Did not dead line; EOF reached (Separator: #{separator_or_limit.inspect}, Bytes Requested: #{limit.inspect}, Fileno: #{fileno})"
+      logger.opt_debug "Did not read line; EOF reached (Separator: #{separator_or_limit.inspect}, Bytes Requested: #{limit.inspect}, Fileno: #{fileno})"
     end
 
     line
