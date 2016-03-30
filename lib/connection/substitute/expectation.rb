@@ -77,13 +77,18 @@ class Connection
 
         def verify_written
           unless data.start_with? io.string
-            logger.fail 'Did not write the expected data; expected:'
-            logger.fail data
-            logger.fail 'Actual:'
-            logger.fail io.string
-            logger.fail ''
+            logger.error <<~MESSAGE
+            Did not write the expected data; expected:
+             
+            #{data}
+             
+            Actual:
+             
+            #{io.string}
+             
+            MESSAGE
 
-            raise IOError, "Data written to connection substitute did not match expectation; see the `fail' log level"
+            raise IOError, "Data written to connection substitute did not match expectation (an error was logged with details)"
           end
         end
 
