@@ -83,7 +83,7 @@ class Connection
             logger.fail io.string
             logger.fail ''
 
-            raise IOError
+            raise IOError, "Data written to connection substitute did not match expectation; see the `fail' log level"
           end
         end
 
