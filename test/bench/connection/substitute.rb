@@ -1,4 +1,4 @@
-require_relative './connection_spec_init'
+require_relative '../bench_init'
 
 context 'Connection Substitute' do
   data = Connection::Controls::Data.example

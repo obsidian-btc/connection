@@ -1,4 +1,4 @@
-require_relative './connection_spec_init'
+require_relative '../bench_init'
 
 context 'Connection' do
   test 'Closing' do

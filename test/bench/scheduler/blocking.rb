@@ -1,4 +1,4 @@
-require_relative './scheduler_spec_init'
+require_relative '../bench_init'
 
 context 'Blocking Scheduler' do
   timeout = Connection::Controls::IO::Timeout.short

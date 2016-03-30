@@ -1,4 +1,4 @@
-require_relative './scheduler_spec_init'
+require_relative '../bench_init'
 
 context 'Immediate Scheduler' do
   scheduler = Connection::Scheduler::Immediate.new
